@@ -1,0 +1,2409 @@
+{
+    "method": {
+        "ID": 98,
+        "name": "ach_guaranteed",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_With_Payoption",
+                "tags": [""],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Without_Payoption",
+                "tags": [
+                    "@smoke "
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Hybrid_With_Payoption",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>2</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_With_Payoption",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>137</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "137"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.37')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.37
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>137</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Test Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "137"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM ACH_GuaranteedPayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN ACH_GuaranteedRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.InitialTransactionID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 1.37,
+                        "PaymentAmount": 1.37,
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Without_Payoption",
+                "tags": [
+                    "@smoke "
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>137</Amount><Currency>USD</Currency><Description>payment description</Description><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "137"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.37')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.37
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>137</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Test Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "137"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM ACH_GuaranteedPayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN ACH_GuaranteedRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.InitialTransactionID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 1.37,
+                        "PaymentAmount": 1.37,
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin_With_Payoption",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ACH_Guaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[PaymentID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,  [ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID , [ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_GuaranteedPayments].[Description] as Description  , [ACH_GuaranteedPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[ACH_GuaranteedPayments], [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_GuaranteedPayments].GPaymentID = @TRXID and [ACH_GuaranteedPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin_Without_Payoption",
+                "tags": [
+                    "@smoke "
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ACH_Guaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[PaymentID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,  [ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID , [ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_GuaranteedPayments].[Description] as Description  , [ACH_GuaranteedPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[ACH_GuaranteedPayments], [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_GuaranteedPayments].GPaymentID = @TRXID and [ACH_GuaranteedPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin_Hybrid_With_Payoption",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>2</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ACH_Guaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[PaymentID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,  [ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID , [ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_GuaranteedPayments].[Description] as Description  , [ACH_GuaranteedPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[ACH_GuaranteedPayments], [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_GuaranteedPayments].GPaymentID = @TRXID and [ACH_GuaranteedPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_NewUser",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>VS EP Automated test payout</Description><CustomerName>tS2P User</CustomerName><AccountNumber>123477590</AccountNumber><RoutingNumber>123456780</RoutingNumber></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail",
+                        "CustomerBankAccountID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [ACH_GuaranteedPayouts].[ID] as ID ,[ACH_GuaranteedPayouts].[GPaymentID] as TransactionID ,  [ACH_GuaranteedPayouts].[MerchantID] as MerchantID , [ACH_GuaranteedPayouts].[MerchantTID] as MerchantTID , [ACH_GuaranteedPayouts].[Amount] as Amount ,[ACH_GuaranteedPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_GuaranteedPayouts].[Description] as Description FROM [Europay].[dbo].[ACH_GuaranteedPayouts],  [PaymentStateDefs] where [ACH_GuaranteedPayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_GuaranteedPayouts].GPaymentID = @TRXID and [ACH_GuaranteedPayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_ExistingUser",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Waiting for implementation to handle new window."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>8136854711</CustomerPhone><CustomerSSN>123456789</CustomerSSN><CustomerAddress><Street>ostrada</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><RecurringDetails><Description>Preapproval description</Description></RecurringDetails><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//span[@class='text-muted' and contains(text(),'Your Order')]"
+                        },
+                        {
+                            "path": "//li[@class='list-group-item d-flex justify-content-between lh-condensed']//strong[contains(text(),'$1.25')]"
+                        },
+                        {
+                            "path": "//button[@id='btnChangePayBank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Continue')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h2[@class='SearchAndSelectPane-module__title' and contains(text(),'Chase')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "test.checkgateway.com/",
+                    "iframes": [
+                        "#plaid-link-iframe-1"
+                    ],
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//button[.='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "action": "type",
+                            "value": "user_good"
+                        },
+                        {
+                            "path": "//input[@id='password']",
+                            "action": "type",
+                            "value": "password_good"
+                        },
+                        {
+                            "path": "//button[@id='submit-credentials']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[contains (text(), 'Verify your identity')]"
+                        },
+                        {
+                            "path": "//button[@id='submit-device']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='code']",
+                            "action": "type",
+                            "value": "12345"
+                        },
+                        {
+                            "path": "//button[@id='submit-code']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'Plaid Checking')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-accounts']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "cdn.plaid.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@id='terms']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='submit-confirmation']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 10",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//h1[@id='a11y-title']"
+                        },
+                        {
+                            "path": "//span[@class='Button-module_text__38wV0' and contains(text(),'Allow')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 11",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//input[@class='form-check-input']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//button[@id='btnPay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 12",
+                    "url": "test.checkgateway.com/",
+                    "elements": [
+                        {
+                            "path": "//strong[contains(text(),'You have successfully submitted your payment')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 13",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_GuaranteedPayments].[ID] as ID ,[ACH_GuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_GuaranteedPayments].[MerchantID] as MerchantID , [ACH_GuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_GuaranteedPayments].[Amount] as Amount ,[ACH_GuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_GuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_GuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_GuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_GuaranteedPayments.GPaymentID =@TRXID and  [ACH_GuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_guaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><Payout><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>VS EP Automated test payout</Description><CustomerName>tS2P User</CustomerName><PreapprovalID>$PREAPPROVALID</PreapprovalID></Payout></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail",
+                        "CustomerBankAccountID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [ACH_GuaranteedPayouts].[ID] as ID ,[ACH_GuaranteedPayouts].[GPaymentID] as TransactionID ,  [ACH_GuaranteedPayouts].[MerchantID] as MerchantID , [ACH_GuaranteedPayouts].[MerchantTID] as MerchantTID , [ACH_GuaranteedPayouts].[Amount] as Amount ,[ACH_GuaranteedPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_GuaranteedPayouts].[Description] as Description FROM [Europay].[dbo].[ACH_GuaranteedPayouts],  [PaymentStateDefs] where [ACH_GuaranteedPayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_GuaranteedPayouts].GPaymentID = @TRXID and [ACH_GuaranteedPayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 100
+                    }
+                }
+            ]
+        }
+    ]
+}

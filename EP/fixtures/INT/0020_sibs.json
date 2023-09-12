@@ -1,0 +1,42 @@
+{
+    "method": {
+        "ID": 20,
+        "name": "sibs",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InitiatePayment",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><InitiatePaymentRequest xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><MID>$MID</MID><PaymentMethod>sibs</PaymentMethod><Details><Payment><Amount>100</Amount><Currency>EUR</Currency><MTID>$MTID</MTID><Description>VS EP Automated Test Payment</Description><CustomerName>Smart2Pay</CustomerName></Payment></Details></InitiatePaymentRequest>",
+                    "hashElements": [],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100",
+                        "EntityNumber": "11302"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [SIBSPayments].[Amount] as Amount, [SIBSStatus].[Description] as Status FROM [Europay].[dbo].[SIBSPayments] with (NOLOCK), [SIBSStatus] where [SIBSPayments].[SIBSStatusID] = [SIBSStatus].[SIBSStatusID] and [SIBSPayments].GPaymentID = @TRXID and [SIBSPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

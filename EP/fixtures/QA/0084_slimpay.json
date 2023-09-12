@@ -1,0 +1,345 @@
+{
+    "method": {
+        "ID": 84,
+        "name": "slimpay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "OpenPreapproval",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><CustomerFirstName>Stefan</CustomerFirstName><CustomerLastName>PAID-NOW</CustomerLastName><CustomerPhone>+40700000000</CustomerPhone><CustomerEmail>carmen.dorin@smart2pay.com</CustomerEmail><CompanyName>Smart2Pay</CompanyName><ReturnURL>http://demo.smart2pay.com/redirect.php?MerchantPreapprovalID=carmen1680162003</ReturnURL><PaymentScheme>CORE</PaymentScheme><CustomerBillingAddress><Address1>Brink</Address1><Address2>27c</Address2><ZipCode>1251</ZipCode><City>Laren</City><Country>NL</Country></CustomerBillingAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "CustomerEmail",
+                        "CustomerFirstName",
+                        "CustomerLastName"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/SlimPay/Landing/PreapprovalLanding.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//a[contains(text(),'FR760000000000')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1500,
+                    "description": "Provider page 2",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//p/a",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT PaymentTypeID, PreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 84
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><CustomerFirstName>Stefan</CustomerFirstName><CustomerLastName>PAID-NOW</CustomerLastName><CustomerPhone>+40700000000</CustomerPhone><CustomerEmail>carmen.dorin@smart2pay.com</CustomerEmail><CompanyName>Smart2Pay</CompanyName><ReturnURL>http://demo.smart2pay.com/redirect.php?MerchantPreapprovalID=carmen1680162003</ReturnURL><PaymentScheme>CORE</PaymentScheme><CustomerBillingAddress><Address1>Brink</Address1><Address2>27c</Address2><ZipCode>1251</ZipCode><City>Laren</City><Country>NL</Country></CustomerBillingAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "CustomerEmail",
+                        "CustomerFirstName",
+                        "CustomerLastName"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/SlimPay/Landing/PreapprovalLanding.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//a[contains(text(),'FR760000000000')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1500,
+                    "description": "Provider page 2",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//p/a",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 84
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>Preapproved payment</Description><ExecutionDate>$TODAYDATE</ExecutionDate></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },               
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 7000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 84
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "ClosePreapproval",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><CustomerFirstName>Stefan</CustomerFirstName><CustomerLastName>PAID-NOW</CustomerLastName><CustomerPhone>+40700000000</CustomerPhone><CustomerEmail>carmen.dorin@smart2pay.com</CustomerEmail><CompanyName>Smart2Pay</CompanyName><ReturnURL>http://demo.smart2pay.com/redirect.php?MerchantPreapprovalID=carmen1680162003</ReturnURL><PaymentScheme>CORE</PaymentScheme><CustomerBillingAddress><Address1>Brink</Address1><Address2>27c</Address2><ZipCode>1251</ZipCode><City>Laren</City><Country>NL</Country></CustomerBillingAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "CustomerEmail",
+                        "CustomerFirstName",
+                        "CustomerLastName"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/SlimPay/Landing/PreapprovalLanding.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//a[contains(text(),'FR760000000000')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1500,
+                    "description": "Provider page 2",
+                    "url": "checkout.preprod.slimpay.com",
+                    "elements": [
+                        {
+                            "path": "//p/a",
+                            "action": "click"
+                        },
+                        {
+                            "path": "input[value='Submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 84
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>Preapproved payment</Description><ExecutionDate>$TODAYDATE</ExecutionDate></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },               
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 7000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 84
+                    }
+                },
+                {
+                    "type": "request",
+                    "delay": 2000,
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CLOSE_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>slimpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><PreapprovalID>$PREAPPROVALID</PreapprovalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "4"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT PR.MerchantID, PR.PaymentTypeID AS MethodID, PR.PreapprovalStateDefID, PSD.Name AS Status FROM PreapprovalRequests AS PR LEFT OUTER JOIN PreapprovalStateDefs AS PSD ON PR.PreapprovalStateDefID = PSD.ID WHERE PR.ID = @PREAPPROVALID",
+                    "expect": {
+                        "Status": "ClosedByCustomer",
+                        "MethodID": 84
+                    }
+                }
+            ]
+        }
+    ]
+}

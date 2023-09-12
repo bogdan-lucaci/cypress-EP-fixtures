@@ -1,0 +1,549 @@
+{
+    "method": {
+        "ID": 24,
+        "name": "Alipay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": "" 
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_Online",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version='1.0' encoding='utf-8'?><Request version='1.0' xmlns='http://europay.smart2pay.com/message'><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>USD</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Online_With_Articles",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version='1.0' encoding='utf-8'?><Request version='1.0' xmlns='http://europay.smart2pay.com/message'><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>USD</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><Articles><Article><Name>Obiectiv Nikon 35 mm</Name><Quantity>1</Quantity></Article><Article><Name>Trepied Velbron DF 50</Name><Quantity>2</Quantity></Article><Article><Name>Shipping tax</Name><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Offline",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><IsOffline>true</IsOffline><StoreID>T24334</StoreID><StoreName>Zara</StoreName><TerminalID>T435345</TerminalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.10
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Offline",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><IsOffline>true</IsOffline><StoreID>T24334</StoreID><StoreName>Zara</StoreName><TerminalID>T435345</TerminalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.10
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "UPDATE AlipayPayments SET ProviderTransactionID=111111 , PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2 WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Webdriver EP Automated Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from AlipayPayments t1 join AlipayPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 0.10,
+                        "RefundAmount": 0.10,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 0.10
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundPayin_Offline",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>20</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><IsOffline>true</IsOffline><StoreID>T24334</StoreID><StoreName>Zara</StoreName><TerminalID>T435345</TerminalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "20"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.20
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "UPDATE AlipayPayments SET ProviderTransactionID=111111 , PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2 WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Webdriver EP Automated Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from AlipayPayments t1 join AlipayPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 0.20,
+                        "RefundAmount": 0.10,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 0.20
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Online",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version='1.0' encoding='utf-8'?><Request version='1.0' xmlns='http://europay.smart2pay.com/message'><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>USD</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Webdriver EP Automated Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from AlipayPayments t1 join AlipayPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 0.05,
+                        "RefundAmount": 0.05,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundPayin_Online",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version='1.0' encoding='utf-8'?><Request version='1.0' xmlns='http://europay.smart2pay.com/message'><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>USD</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>3</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Webdriver EP Automated Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "3"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from AlipayPayments t1 join AlipayPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 0.05,
+                        "RefundAmount": 0.03,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Cancel_Offline_Payment",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>Webdriver EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><IsOffline>true</IsOffline><StoreID>T24334</StoreID><StoreName>Zara</StoreName><TerminalID>T435345</TerminalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10"
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_PAYIN</Action><MID>$MID</MID><PaymentMethod /><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>10</Amount><Currency>CNY</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31",
+                        "Amount": "10"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_IsMobile",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "Return code 7. Internal problem. Object reference not set to an instance of an object."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>7</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerEmail>mada@awesome.com</CustomerEmail><IsOffline>false</IsOffline><IsMobileApp>true</IsMobileApp></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "7",
+                        "Instructions": {
+                            "regex": "(d+..+;?)"
+                        }
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.07
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_IsMobile_With_Articles",
+                "tags": [],
+                "deA scription": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>alipay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>10</Amount><Currency>CNY</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerEmail>mada@awesome.com</CustomerEmail><IsOffline>false</IsOffline><IsMobileApp>true</IsMobileApp><Articles><Article><Name>Obiectiv Nikon 35 mm</Name><Quantity>1</Quantity></Article><Article><Name>Trepied Velbron DF 50</Name><Quantity>2</Quantity></Article><Article><Name>Shipping tax</Name><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "10",
+                        "Instructions": {
+                            "regex": "(d+..+;?)"
+                        }
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [AlipayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[AlipayPayments], [PaymentStateDefs] where [AlipayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [AlipayPayments].GPaymentID=@TRXID and [AlipayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.10
+                    }
+                }
+            ]
+        }
+    ]
+}

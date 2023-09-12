@@ -1,0 +1,2005 @@
+{
+    "method": {
+        "ID": 85,
+        "name": "Wechat",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "Update Wechat tables",
+                "tags": [],
+                "description": "Update Wechat tables to reduce the number of transactions ready for GetNotification or GetStatus winservices",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments set PaymentStateDefID=5 , Description='Updated by winservice script' where PaymentStateDefID=1 AND SubID in(1261,1000,1016,1069)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "UPDATE WechatPayments set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()), Description='Updated by winservice script', LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID NOT IN (0,1,14) and SubID in (1261,1000,1016,1069) and (IsNotificated =0 or IsNotificated is NULL)",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=4791792",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4791792",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success NotificatedDate=InputDateTime",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDateTime = DATEADD(hour, -1, GETUTCDATE())  WHERE PaymentID=4810566",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', NotificatedDate= InputDateTime, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=4810566",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810566",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=4782088",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4782088",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":4,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE PaymentID=4782089",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4782089",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE PaymentID=4782084",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4782084",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE PaymentID=4782083",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4782083",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 0, NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE PaymentID=4810563",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810563",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PaymentNotification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "status update is executed prior notification and payment is set to 5"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE PaymentID=4818331",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4818331",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PaymentNotification Expired InputDateTime < @MaxDateTimeExpired ",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 1 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDatetime= DATEADD(minute, -1, DATEADD(day, -8, GETUTCDATE())),IsNotificated= 0, NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 5  WHERE PaymentID=4810573",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810573",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":5
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PaymentNotification Expired InputDateTime > @EndDateTimeExpired ",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 2 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDatetime= GETUTCDATE(), IsNotificated= 0, NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 5  WHERE PaymentID=4656084",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4656084",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":5
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 1 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=4656087",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 8000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4656087",
+                    "expect": {
+                        "NotificationAttemptsCounter":0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter LastNotificationAttemptDateTime < NotificationAttemptsTimeDifference",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 2 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(hour, -1, GETUTCDATE())  WHERE PaymentID=4656089",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4656089",
+                    "expect": {
+                        "NotificationAttemptsCounter":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter NotificationAttemptsCounter < @NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =2,  LastNotificationAttemptDateTime=DATEADD(minute, -1, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=1810188",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 2000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter from WechatPayments  WHERE PaymentID=1810188",
+                    "expect": {
+                        "NotificationAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "can't find successfull transaction at provider "
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=1916052",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,ActionTypeID,StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1916052",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=132570",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter, ActionTypeID from WechatPayments  WHERE PaymentID=132570",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Open",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Can't be tested - all transactions are set to expired"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1  WHERE PaymentID=4810660",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter , ActionTypeID from WechatPayments  WHERE PaymentID=4810660",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Expired",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Can't be tested - all transactions are set to expired"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1  WHERE PaymentID=4810660",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter , ActionTypeID from WechatPayments  WHERE PaymentID=4810660",
+                    "expect": {
+                        "Status": 5,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=4810587",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime, ActionTypeID from WechatPayments  WHERE PaymentID=4810587",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "ActionTypeID":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=3317925",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=3317925",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success NotificatedDate=InputDateTime",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDateTime = DATEADD(hour, -1, GETUTCDATE())  WHERE PaymentID=3317903",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', NotificatedDate= InputDateTime, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=3317903",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=3317903",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', LastNotificationAttemptDateTime=GETUTCDATE(), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4,  PaymentStateDefID = 2  WHERE PaymentID=1915064",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=1915064",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":4,
+                        "Status":2,
+                        "ActionTypeID":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE PaymentID=4810595",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810595",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4,
+                        "ActionTypeID":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE PaymentID=4810593",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810593",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE PaymentID=4810588",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810588",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 0, NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE PaymentID=4810585",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810585",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  IsNotificated= 'False', NotificatedDate= NULL, InputDatetime=(select DATEADD(minute, 30, DATEADD(hour, 17, CAST(CAST(DATEADD(day,0, GETDATE()) AS DATE) AS DATETIME)))), StatusAttemptsCounter=10, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE PaymentID=4818337",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,ActionTypeID, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4818337",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Expired InputDateTime < @MaxDateTimeExpired ",
+                "tags": ["winservice","Notification"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 1 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDatetime= DATEADD(hour, -1, DATEADD(day, -8, GETUTCDATE())),IsNotificated= 0, NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 5  WHERE PaymentID=4818333",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, ActionTypeID, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4818333",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":5,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Expired InputDateTime > @EndDateTimeExpired ",
+                "tags": ["winservice","Notification"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 2 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  InputDatetime= GETUTCDATE(), IsNotificated= 0, NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 5  WHERE PaymentID=4818334",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated,ActionTypeID, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4818334",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":5,
+                        "ActionTypeID":2
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'WeChatNotificationsExpiredDaysInterval' THEN 7 WHEN name = 'WeChatNotificationsExpiredDelayInterval' THEN 1 END WHERE name IN ('WeChatNotificationsExpiredDaysInterval', 'WeChatNotificationsExpiredDelayInterval'); ",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=4810569",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 8000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime, ActionTypeID from WechatPayments  WHERE PaymentID=4810569",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter LastNotificationAttemptDateTime < NotificationAttemptsTimeDifference",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=GETUTCDATE()  WHERE PaymentID=4810567",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter, ActionTypeID, LastNotificationAttemptDateTime from WechatPayments  WHERE PaymentID=4810567",
+                    "expect": {
+                        "NotificationAttemptsCounter":4,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter NotificationAttemptsCounter < @NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET   NotificationAttemptsCounter =2,  LastNotificationAttemptDateTime=DATEADD(minute, -1, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=4801971",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 2000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter, ActionTypeID from WechatPayments  WHERE PaymentID=4801971",
+                    "expect": {
+                        "NotificationAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime < 2days AND InputDateTime.Hour between 00 and 24",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , InputDateTime = DATEADD(hour, -1, DATEADD(day, -2, GETUTCDATE())), StatusAttemptsCounter=1 WHERE PaymentID=2019868",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=2019868",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = 1day before and InputDateTime.Hour NOT Between 16 and 24",
+                "tags": ["winservice","GetStatus"],
+                "description": "positive",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date - 1), 15, 59, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=1993840",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1993840",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = 1day before and InputDateTime.Hour NOT Between 16 and 24 - NEGATIVE",
+                "tags": ["winservice","GetStatus"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "negative test depends on UTC time which can't be handeled"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date - 1), 16, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=4810604",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=4810604",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = 1day before and InputDateTime.Hour Between 16 and 24 and UTC.Hour between 04 and 24",
+                "tags": ["winservice","GetStatus"],
+                "description": "positive",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "This must be executed between 04-24 hours UTC"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date - 1), 16, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=1993839",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1993839",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = 1day before and InputDateTime.Hour Between 16 and 24 and UTC.Hour between 04 and 24",
+                "tags": ["winservice","GetStatus"],
+                "description": "negative Hour Between 16 and 24 AND UTC.hour between 00 and 04",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "This must be executed between 00 and 04 hours UTC"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date - 1), 16, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=1993839",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1993839",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour NOT Between 00 and 04",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 04, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=1961907",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1961907",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour NOT Between 00 and 04 - NEGATIVE",
+                "tags": ["winservice","GetStatus"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "can't be tested, can't handle UTC time"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 00, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=1961907",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=1961907",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour Between 00 and 04 and UTC.Hour between 04 and 24",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "This must be executed between 04-24 hours UTC"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET  InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 01, 01, 0, 0)) , StatusAttemptsCounter=1 , PaymentStateDefID=1 WHERE PaymentID=2028718",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=2028718",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour Between 00 and 04 and UTC.Hour between 04 and 24 - NEGATIVE",
+                "tags": ["winservice","GetStatus"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "This must be executed between 00-04 hours UTC, else will go to 1rst flow"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 04, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=4810583",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=4810583",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour NOT Between 16 and 24",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 07, 59, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=2028717",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=2028717",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success InputDateTime = today and InputDateTime.Hour NOT Between 16 and 24 - NEGATIVE",
+                "tags": ["winservice","GetStatus"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "declare @date datetime = GETDATE() UPDATE WechatPayments SET PaymentStateDefID = 1, InputDatetime= (select DATETIMEFROMPARTS(YEAR(@date), Month(@date),DAY(@date), 16, 01, 0, 0)) , StatusAttemptsCounter=1 WHERE PaymentID=4782079",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, ActionTypeID, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=4782079",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success StatusAttemptsCounter > WeChatNumberOfGetStatusAttemptsForRefunds",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "reset counter is executed first, should be tested in isolation"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='WeChatNumberOfGetStatusAttemptsForRefunds'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , InputDatetime=DATEADD(minute, -1, DATEADD(day, -2, GETUTCDATE())), StatusAttemptsCounter=6  WHERE PaymentID=3707281",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from WechatPayments  WHERE PaymentID=3707281",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":6
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 ,InputDateTime=DATEADD(minute, -1, DATEADD(day, -2, GETUTCDATE())), StatusAttemptsCounter=1 WHERE PaymentID=4753897",
+                    "expect": { }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from WechatPayments  WHERE PaymentID=4753897",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Status Attempts Counter",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name ='WeChatNumberOfGetStatusAttemptsForRefunds' THEN 3 WHEN name ='WeChatRefundsResetStatusAttemptCounterInterval' THEN 3 END WHERE name IN ('WeChatNumberOfGetStatusAttemptsForRefunds', 'WeChatRefundsResetStatusAttemptCounterInterval');",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=4, InputDateTime=(select DATEADD(day, -1, GETUTCDATE()))  WHERE PaymentID=4744998",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select StatusAttemptsCounter, ActionTypeID from WechatPayments  WHERE PaymentID=4744998",
+                    "expect": {
+                        "StatusAttemptsCounter":0,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Status Attempts Counter StatusAttemptsCounter > @NumberOfGetStatusAttemptsForRefund",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name ='WeChatNumberOfGetStatusAttemptsForRefunds' THEN 3 WHEN name ='WeChatRefundsResetStatusAttemptCounterInterval' THEN 3 END WHERE name IN ('WeChatNumberOfGetStatusAttemptsForRefunds', 'WeChatRefundsResetStatusAttemptCounterInterval');",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE WechatPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=4, InputDateTime=(select DATEADD(day, -4, GETUTCDATE())) WHERE PaymentID=4744998",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Wechat.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select StatusAttemptsCounter, ActionTypeID from WechatPayments  WHERE PaymentID=4744998",
+                    "expect": {
+                        "StatusAttemptsCounter":4,
+                        "ActionTypeID":2
+                    }
+                }
+            ]
+        }
+
+    ]
+} 

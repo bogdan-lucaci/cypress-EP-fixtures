@@ -1,0 +1,409 @@
+{
+    "method": {
+        "ID": 57,
+        "name": "IDEAL2",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_Without_Issuer_v1",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>payment</Description><CustomerName>John Doe</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "img[alt='IDeal']"
+                        },
+                        {
+                            "path": "#lblAmountValueLayout7",
+                            "action": "assert",
+                            "should": ["contain", "1.00 EUR"]
+                        },
+                        {
+                            "path": "#ddpIssuerListLayout7",
+                            "value": "BANKNL2Y",
+                            "action": "select"
+                        },
+                        {
+                            "path": "#btnContinueLayout7",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 1000,
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Without_Issuer_v2",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>9000</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "ext.pay.ideal.nl",
+                    "elements": [
+                        {
+                            "path": "svg[alt='iDEAL']"
+                        },
+                        {
+                            "path": "h3",
+                            "action": "assert",
+                            "should": ["contain", 1]
+                        },
+                        {
+                            "path": "h1",
+                            "action": "assert",
+                            "should": ["contain", "Select a bank"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 1000,
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_With_Issuer_100",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><IssuerID>100</IssuerID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Initiate_With_Issuer_100_v1",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": true,
+                "knownIssue": "PO note: NOT USED."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><InitiatePaymentRequest xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><ClientIPAddress>82.208.151.136</ClientIPAddress><Details><Payment><Amount>100</Amount><Currency>EUR</Currency><MTID>1234567</MTID><Description>Automated Test Payment</Description><CustomerName>Cristina</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><IssuerID>100</IssuerID></Payment></Details></InitiatePaymentRequest>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": true,
+                "knownIssue": "PO note: NOT USED."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><IssuerID>100</IssuerID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 100,
+                    "query": "SELECT [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments], [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID=@TRXID and [IDeal2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1,
+                        "ActionTypeID": 2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": true,
+                "knownIssue": "PO note: NOT USED."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><IssuerID>100</IssuerID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IDeal2Payments].[PaymentID] as ID, [IDeal2Payments].[GPaymentID] as TransactionID, [IDeal2Payments].[MerchantID] as MerchantID, [IDeal2Payments].[MerchantTID] as MerchantTID, [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments] with (NOLOCK), [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID = @TRXID and [IDeal2Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ideal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>50</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "50"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 100,
+                    "query": "SELECT [IDeal2Payments].[Amount] as Amount, [IDeal2Payments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [IDeal2Payments].[Description] as Description FROM [Europay].[dbo].[IDeal2Payments], [PaymentStateDefs] where [IDeal2Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IDeal2Payments].GPaymentID=@TRXID and [IDeal2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.5,
+                        "ActionTypeID": 2
+                    }
+                }
+            ]
+        }
+    ]
+}

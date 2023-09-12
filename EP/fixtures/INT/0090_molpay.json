@@ -1,0 +1,160 @@
+{
+    "method": {
+        "ID": 90,
+        "name": "molpay",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_2",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>molpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>3000</Amount><Currency>THB</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Test</CustomerName><CustomerEmail>john@doe.com</CustomerEmail><CustomerPhoneNo>5656565489</CustomerPhoneNo><OptionID>2</OptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "3000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "krungthai.com",
+                    "elements": [
+                        {
+                            "path": "//*[contains(text(),'30.00')]"
+                        },
+                        {
+                            "path": "//*[@id='commlogo']"
+                        },
+                        {
+                            "path": "//*[@id='cancelbt']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MOLPayPayments].[PaymentID] as ID, [MOLPayPayments].[GPaymentID] as TransactionID, [MOLPayPayments].[MerchantID] as MerchantID, [MOLPayPayments].[MerchantTID] as MerchantTID, [MOLPayPayments].[Amount] as Amount, [MOLPayPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[MOLPayPayments].[Description] as Description FROM [Europay].[dbo].[MOLPayPayments] with (NOLOCK), [PaymentStateDefs] where [MOLPayPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [MOLPayPayments].GPaymentID = @TRXID and [MOLPayPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 30.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_3",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>molpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>3000</Amount><Currency>THB</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Test</CustomerName><CustomerEmail>john@doe.com</CustomerEmail><CustomerPhoneNo>5656565489</CustomerPhoneNo><OptionID>3</OptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "3000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "ibanking.bangkokbank.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='txtID']"
+                        },
+                        {
+                            "path": "//*[@id='txtPwd']"
+                        },
+                        {
+                            "path": "//*[@id='btnLogOn']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MOLPayPayments].[PaymentID] as ID, [MOLPayPayments].[GPaymentID] as TransactionID, [MOLPayPayments].[MerchantID] as MerchantID, [MOLPayPayments].[MerchantTID] as MerchantTID, [MOLPayPayments].[Amount] as Amount, [MOLPayPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[MOLPayPayments].[Description] as Description FROM [Europay].[dbo].[MOLPayPayments] with (NOLOCK), [PaymentStateDefs] where [MOLPayPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [MOLPayPayments].GPaymentID = @TRXID and [MOLPayPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 30.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_4",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>molpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>3000</Amount><Currency>THB</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Test</CustomerName><CustomerEmail>john@doe.com</CustomerEmail><CustomerPhoneNo>5656565489</CustomerPhoneNo><OptionID>4</OptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "3000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [MOLPayPayments].[PaymentID] as ID, [MOLPayPayments].[GPaymentID] as TransactionID, [MOLPayPayments].[MerchantID] as MerchantID, [MOLPayPayments].[MerchantTID] as MerchantTID, [MOLPayPayments].[Amount] as Amount, [MOLPayPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[MOLPayPayments].[Description] as Description FROM [Europay].[dbo].[MOLPayPayments] with (NOLOCK), [PaymentStateDefs] where [MOLPayPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [MOLPayPayments].GPaymentID = @TRXID and [MOLPayPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 30.00
+                    }
+                }
+            ]
+        }
+    ]
+}

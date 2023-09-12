@@ -1,0 +1,333 @@
+{
+    "method": {
+        "ID": 87,
+        "name": "VTCPay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_0",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>vtcpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>VND</Currency><Language>en-US</Language><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><PayOption>0</PayOption><Description>Payment vtcpay</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Provider page 1",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//td[@class='dont-break-out']"
+                        },
+                        {
+                            "path": "//td[@id='headerAmount' and contains(text(),'10 VND')]"
+                        },
+                        {
+                            "path": "//div[@class='box_img_thumb_nn_ud']//img[@alt='Visa']",
+                            "action":"click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Provider page 2",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//input[@id='txtCardNumber']",
+                            "action":"type",
+                            "value":"4111 1111 1111 1111 "
+                        },
+                        {
+                            "path": "//input[@id='txtCardHolder']",
+                            "action":"type",
+                            "value":"NGUYEN VAN A "
+                        },
+                        {
+                            "path": "//select[@id='ddlMonth']/option[@value='01']",
+                            "action":"click"
+                        },
+                        {
+                            "path": "//select[@id='ddlYear']/option[@value='2030']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//input[@id='txtCardCVN']",
+                            "action": "type",
+                            "value": "123"
+                        },
+                        {
+                            "path": "//input[@id='txtAddress']",
+                            "action": "type",
+                            "value": "Addison"
+                        },
+                        {
+                            "path": "//input[@id='txtProvincialCity']",
+                            "action": "type",
+                            "value": "Dalas"
+                        },
+                        {
+                            "path": "//select[@id='ddlState']",
+                            "action": "select",
+                            "value":"Texas"
+                        },
+                        {
+                            "path": "//input[@id='txtZipCode']",
+                            "action": "type",
+                            "value": "75001"
+                        },
+                        {
+                            "path": "//a[@id='lbtConfirmPayment']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [VTCPayPayments].[PaymentID] as ID ,[VTCPayPayments].[GPaymentID] as TransactionID ,  [VTCPayPayments].[MerchantID] as MerchantID , [VTCPayPayments].[MerchantTID] as MerchantTID , [VTCPayPayments].[Amount] as Amount ,[VTCPayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [VTCPayPayments].[Description] as Description     FROM [Europay].[dbo].[VTCPayPayments],  [PaymentStateDefs] where [VTCPayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [VTCPayPayments].GPaymentID = @TRXID and [VTCPayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_1",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>vtcpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>VND</Currency><Language>en-US</Language><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><PayOption>1</PayOption><Description>Payment vtcpay</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//td[@class='dont-break-out']"
+                        },
+                        {
+                            "path": "//td[@id='headerAmount' and contains(text(),'10 VND')]"
+                        },
+                        {
+                            "path": "//input[@id='txtAccountNumber']",
+                            "action":"type",
+                            "value":"0357758300"
+                        },
+                        {
+                            "path": "//input[@id='txtPassword']",
+                            "action":"type",
+                            "value":"Abcd1234"
+                        },
+                        {
+                            "path": "//a[@id='btnLogin']",
+                            "action":"click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [VTCPayPayments].[PaymentID] as ID ,[VTCPayPayments].[GPaymentID] as TransactionID ,  [VTCPayPayments].[MerchantID] as MerchantID , [VTCPayPayments].[MerchantTID] as MerchantTID , [VTCPayPayments].[Amount] as Amount ,[VTCPayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [VTCPayPayments].[Description] as Description     FROM [Europay].[dbo].[VTCPayPayments],  [PaymentStateDefs] where [VTCPayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [VTCPayPayments].GPaymentID = @TRXID and [VTCPayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_2",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>vtcpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>VND</Currency><Language>en-US</Language><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><PayOption>2</PayOption><Description>Payment vtcpay</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//div[@class='box-popup']//p[contains(text(),'Not enough information returned from the bank to determine the status of the transaction')]"
+                        },
+                        {
+                            "path": "//button[@id='btnSuccess']",
+                            "action":"click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [VTCPayPayments].[PaymentID] as ID ,[VTCPayPayments].[GPaymentID] as TransactionID ,  [VTCPayPayments].[MerchantID] as MerchantID , [VTCPayPayments].[MerchantTID] as MerchantTID , [VTCPayPayments].[Amount] as Amount ,[VTCPayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [VTCPayPayments].[Description] as Description     FROM [Europay].[dbo].[VTCPayPayments],  [PaymentStateDefs] where [VTCPayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [VTCPayPayments].GPaymentID = @TRXID and [VTCPayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_3",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>vtcpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>VND</Currency><Language>en-US</Language><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><PayOption>3</PayOption><Description>Payment vtcpay</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//td[@class='dont-break-out']"
+                        },
+                        {
+                            "path": "//td[@id='headerAmount' and contains(text(),'10 VND')]"
+                        },
+                        {
+                            "path": "//img[@alt='VTC Pay e-Wallet']",
+                            "action":"click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "alpha1.vtcpay.vn",
+                    "elements": [
+                        {
+                            "path": "//td[@class='dont-break-out']"
+                        },
+                        {
+                            "path": "//td[@id='headerAmount' and contains(text(),'10 VND')]"
+                        },
+                        {
+                            "path": "//input[@id='txtAccountNumber']",
+                            "action":"type",
+                            "value":"0357758300"
+                        },
+                        {
+                            "path": "//input[@id='txtPassword']",
+                            "action":"type",
+                            "value":"Abcd1234"
+                        },
+                        {
+                            "path": "//a[@id='btnLogin']",
+                            "action":"click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [VTCPayPayments].[PaymentID] as ID ,[VTCPayPayments].[GPaymentID] as TransactionID ,  [VTCPayPayments].[MerchantID] as MerchantID , [VTCPayPayments].[MerchantTID] as MerchantTID , [VTCPayPayments].[Amount] as Amount ,[VTCPayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [VTCPayPayments].[Description] as Description     FROM [Europay].[dbo].[VTCPayPayments],  [PaymentStateDefs] where [VTCPayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [VTCPayPayments].GPaymentID = @TRXID and [VTCPayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10.00
+                    }
+                }
+            ]
+        }
+    ]
+}

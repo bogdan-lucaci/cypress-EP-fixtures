@@ -1,0 +1,62 @@
+{
+    "method": {
+        "ID": 67,
+        "name": "DagonPay",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>dragonpay</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>PHP</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><Language>en-PH</Language><CustomerName>John Doe</CustomerName><CustomerEmail>carmen18ro2001@yahoo.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                }, 
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [DragonPayPayments].[PaymentID] as ID ,[DragonPayPayments].[GPaymentID] as TransactionID ,  [DragonPayPayments].[MerchantID] as MerchantID ,[DragonPayPayments].[MerchantTID] as MerchantTID , [DragonPayPayments].[Amount] as Amount ,  [DragonPayPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [DragonPayPayments].[Description] as Description   FROM [Europay].[dbo].[DragonPayPayments], [PaymentStateDefs]   where [DragonPayPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [DragonPayPayments].GPaymentID = @TRXID and [DragonPayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

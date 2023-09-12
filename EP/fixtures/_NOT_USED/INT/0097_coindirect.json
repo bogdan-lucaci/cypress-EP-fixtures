@@ -1,0 +1,122 @@
+{
+    "method": {
+        "ID": 97,
+        "name": "CoinDirect",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+       
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coindirect</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>2100</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><Description>Coindirect payment</Description><CustomerEmail>user@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "2100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":5000,
+                    "description": "Provider page 1",
+                    "url": "business.sandbox.coindirect.com",
+                    "elements": [
+                        {
+                            "path": "//div[@data-testid='MerchantName' and contains(text(),'Nuvei Test MID')]"                            
+                        },
+                        {
+                            "path": "//*[contains(text(),21)]//span[contains(text(),'EUR')]"                            
+                        },
+                        {
+                            "path": "//*[@class='tw-mx-2' and contains(text(),'Pay')]",
+                            "action":"click"
+
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "business.sandbox.coindirect.com",
+                    "elements": [
+                        {
+                            "path": "//*[contains(text(),'To complete this payment send the amount due to the  BTC address provided below.')]"                            
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [CoinDirectPayments].[ID] as ID ,[CoinDirectPayments].[GPaymentID] as TransactionID ,  [CoinDirectPayments].[MerchantID] as MerchantID , [CoinDirectPayments].[MerchantTID] as MerchantTID , [CoinDirectPayments].[Amount] as Amount ,[CoinDirectPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinDirectPayments].[Description] as Description     FROM [Europay].[dbo].[CoinDirectPayments],  [PaymentStateDefs] where [CoinDirectPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [CoinDirectPayments].GPaymentID = @TRXID and [CoinDirectPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 21.00                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coindirect</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>2000</Amount><Currency>EUR</Currency><Description>Automated test payout</Description><CryptoAddress>0x88B3E64135464760e317dAbfAEE70DF300d9e45f</CryptoAddress><CryptoCurrency>ETH</CryptoCurrency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "2000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 10000,
+                    "query": "SELeCT CP.ID, CP.MerchantTID, CP.MerchantID, CP.GpaymentID, CP.Amount, CP.ProviderReturnCode, CP.ProviderMessage, P.Name as Status from CoinDirectPayouts CP inner join PaymentStateDefs as P on CP.PaymentStateDefID=P.PaymentStateDefID where CP.GPaymentID=@TRXID and CP.MerchantID=@MID",
+                    "expect": {
+                        "Status": "Failed",
+                        "ProviderReturnCode": "amountTooHigh",
+                        "ProviderMessage": "You must specify an amount <=  0.48"
+                    }
+                }
+            ]
+        }
+    ]
+}       

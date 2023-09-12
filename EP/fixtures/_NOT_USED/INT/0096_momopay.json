@@ -1,0 +1,151 @@
+{
+    "method": {
+        "ID": 96,
+        "name": "momo",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>momo</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>VND</Currency><SuccessURL>http://www.smart2pay.com/success.html</SuccessURL><FailureURL>http://www.smart2pay.com/failure.html</FailureURL><ProcessingURL>http://www.smart2pay.com/processing.html</ProcessingURL><CancelURL>http://www.smart2pay.com/cancel.html</CancelURL><Description>momo payment</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "test-payment.momo.vn",
+                    "elements": [
+                        {
+                            "path": "//a[@class='navbar-brand momo-logo']"
+                        },
+                        {
+                            "path": "//div[@class='qrcode_scan']"
+                        },
+                        {
+                            "path": "//p[.='SMART2PAY']"
+                        },
+                        {
+                            "path": "//h3[.='1.000đ']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [MomoPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MomoPayments], [PaymentStateDefs] where [MomoPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [MomoPayments].GPaymentID=@TRXID and [MomoPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1000.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>momo</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>VND</Currency><SuccessURL>http://www.smart2pay.com/success.html</SuccessURL><FailureURL>http://www.smart2pay.com/failure.html</FailureURL><ProcessingURL>http://www.smart2pay.com/processing.html</ProcessingURL><CancelURL>http://www.smart2pay.com/cancel.html</CancelURL><Description>momo payment</Description><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "test-payment.momo.vn",
+                    "elements": [
+                        {
+                            "path": "//a[@class='navbar-brand momo-logo']"
+                        },
+                        {
+                            "path": "//div[@class='qrcode_scan']"
+                        },
+                        {
+                            "path": "//p[.='SMART2PAY']"
+                        },
+                        {
+                            "path": "//h3[.='1.000đ']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [MomoPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MomoPayments], [PaymentStateDefs] where [MomoPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [MomoPayments].GPaymentID=@TRXID and [MomoPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1000.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>momo</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>VND</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "34"
+                    }
+                }
+            ]
+        }
+    ]
+}

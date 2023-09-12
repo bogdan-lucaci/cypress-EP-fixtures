@@ -1,0 +1,68 @@
+{
+    "method": {
+        "ID": 108,
+        "name": "BankingCircle",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bankingcircle</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>EUR</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerName>Test User S2P</CustomerName><BillingAddress><CountryCode>RO</CountryCode></BillingAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerName",
+                        "CustomerEmail"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'EuroPay Merchant Admin')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [BankingCirclePayments].[ID] as ID ,[BankingCirclePayments].[GPaymentID] as TransactionID ,[BankingCirclePayments].[MerchantID] as MerchantID , [BankingCirclePayments].[MerchantTID] as MerchantTID ,[BankingCirclePayments].[Amount] as Amount ,[BankingCirclePayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[BankingCirclePayments].[Description] as Description    FROM [Europay].[dbo].[BankingCirclePayments] with (NOLOCK), [PaymentStateDefs] where [BankingCirclePayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and BankingCirclePayments.GPaymentID =@TRXID and  [BankingCirclePayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        }        
+    ]
+}

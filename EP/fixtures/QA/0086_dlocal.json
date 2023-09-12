@@ -1,0 +1,319 @@
+{
+    "method": {
+        "ID": 86,
+        "name": "Dlocal",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_122",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Fail from provider - Could not process transaction."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1200</Amount><Currency>INR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><OptionID>122</OptionID><Description>Dlocal Payment India</Description><CustomerName>Irina Toea</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><SocialSecurityNumber>ABCDE1234F</SocialSecurityNumber><CustomerCountry>IN</CustomerCountry></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.dlocal.com",
+                    "elements": [
+                        {
+                            "path": "//*[@name='txtUser']"
+                        },
+                        {
+                            "path": "//*[@name='txtPassword']"
+                        },
+                        {
+                            "path": "//*[@name='btnSubmit']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 12.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_125",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1200</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><OptionID>125</OptionID><Description>Dlocal Payment Brasil</Description><CustomerName>Irina Toea</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><SocialSecurityNumber>59972472280</SocialSecurityNumber><CustomerCountry>BR</CustomerCountry></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.dlocal.com",
+                    "elements": [
+                        {
+                            "path": "//p[@class='amount']",
+                            "action": "assert",
+                            "should": ["contain", "12,00"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 12.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_PayOption_125",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1200</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><OptionID>125</OptionID><Description>Dlocal Payment Brasil</Description><CustomerName>Irina Toea</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><SocialSecurityNumber>59972472280</SocialSecurityNumber><CustomerCountry>BR</CustomerCountry></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.dlocal.com",
+                    "elements": [
+                        {
+                            "path": "//p[@class='amount']",
+                            "action": "assert",
+                            "should": ["contain", "12,00"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 12.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE DlocalPayments SET PaymentStateDefID = 2, AvailableAmount = 12.00, ProviderTransactionID='999888777666', LastNotifiedPaymentStateDefID =2, IsNotificated = 1, NotificatedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1200</Amount><Currency>BRL</Currency><InitialTransactionID>$TRXID</InitialTransactionID><BankDetails><CustomerName>UserName</CustomerName><BankName>BankName</BankName><AccountNumber>AccountNumber</AccountNumber><AccountType>I</AccountType><BranchName>BranchName</BranchName></BankDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1200"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 100,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [DlocalPayments].[ProviderErrorCode] as ProviderErrorCode, [DlocalPayments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Failed",
+                        "Amount": 12.00,
+                        "ActionTypeID": 2,
+                        "ProviderErrorCode":"516"
+                    }
+                }
+                
+
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundPayin_PayOption_125",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1200</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><OptionID>125</OptionID><Description>Dlocal Payment Brasil</Description><CustomerName>Irina Toea</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><SocialSecurityNumber>59972472280</SocialSecurityNumber><CustomerCountry>BR</CustomerCountry></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.dlocal.com",
+                    "elements": [
+                        {
+                            "path": "//p[@class='amount']",
+                            "action": "assert",
+                            "should": ["contain", "12,00"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 12.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE DlocalPayments SET PaymentStateDefID = 2, AvailableAmount = 12.00, ProviderTransactionID='999888777666', LastNotifiedPaymentStateDefID =2, IsNotificated = 1, NotificatedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>dlocal</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>BRL</Currency><InitialTransactionID>$TRXID</InitialTransactionID><BankDetails><CustomerName>UserName</CustomerName><BankName>BankName</BankName><AccountNumber>AccountNumber</AccountNumber><AccountType>I</AccountType><BranchName>BranchName</BranchName></BankDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 100,
+                    "query": "SELECT [DlocalPayments].[PaymentID] as ID, [DlocalPayments].[GPaymentID] as TransactionID, [DlocalPayments].[MerchantID] as MerchantID, [DlocalPayments].[MerchantTID] as MerchantTID, [DlocalPayments].[Amount] as Amount, [DlocalPayments].[Currency] as Currency, [DlocalPayments].[ProviderErrorCode] as ProviderErrorCode, [DlocalPayments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [DlocalPayments].[Description] as Description FROM [Europay].[dbo].[DlocalPayments], [PaymentStateDefs] where [DlocalPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [DlocalPayments].GPaymentID=@TRXID and [DlocalPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Failed",
+                        "Amount": 6.0,
+                        "ActionTypeID": 2,
+                        "ProviderErrorCode":"516"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "select AvailableAmount, ActionTypeID from DlocalPayments where GPaymentID= (select ParentPaymentID from DlocalPayments where GPaymentID=@TRXID and MerchantID=@MID)",
+                    "expect": {
+                        "AvailableAmount": 12.00,
+                        "ActionTypeID": 1
+                    }
+                }
+                
+
+            ]
+        }
+    ]
+}

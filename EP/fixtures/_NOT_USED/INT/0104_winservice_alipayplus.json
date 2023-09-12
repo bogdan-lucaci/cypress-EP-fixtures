@@ -1,0 +1,1820 @@
+{
+    "method": {
+        "ID": 104,
+        "name": "AlipayPlus",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "Update AlipayPlus tables",
+                "tags": [],
+                "description": "Update AlipayPlus tables to reduce number of transactions ready for GetNotification, Retry or GetStatus winservices ",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlus_PaymentsMaterialised set PaymentStateDefID=5 , InputDateTime=GETUTCDATE(), Description='Updated by winservice script' where PaymentStateDefID=1 and SubID=1016 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlus_PaymentsMaterialised set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID NOT IN (0,1,14) and SubID=1016",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests set NotificationDateTime=DATEADD(minute, -1, GETUTCDATE()),Description='Updated by winservice script', LastNotifiedPreapprovalStateDefID=PreapprovalStateDefID where PreapprovalStateDefID <> 1 and SubID=1016 and PaymentTypeID=104",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID NOT IN (0,1,14) and SubID=1016  and (IsNotificated =0 or IsNotificated is NULL)",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=12138",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12138",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success NotificatedDate=InputDateTime",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  InputDateTime = DATEADD(hour, -1, GETUTCDATE())  WHERE PaymentID=12238",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 'False', NotificatedDate= InputDateTime, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=12238",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12238",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE PaymentID=12195",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12195",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":4,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE PaymentID=12528",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12528",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE PaymentID=12606",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":10000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12606",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE PaymentID=12605",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12605",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 0, NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE PaymentID=12611",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12611",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PaymentNotification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET  IsNotificated= 'False', NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE PaymentID=11918",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=11918",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=12421",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 5000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12421",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "LastNotificationAttemptDateTime": {
+                            "should":["equal",null]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter LastNotificationAttemptDateTime < NotificationAttemptsTimeDifference",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 2 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(hour, -1, GETUTCDATE())  WHERE PaymentID=12494",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12494",
+                    "expect": {
+                        "NotificationAttemptsCounter":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter NotificationAttemptsCounter < @NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET PaymentStateDefID=4, IsNotificated=1, LastNotifiedPaymentStateDefID=4,  NotificationAttemptsCounter =2,  LastNotificationAttemptDateTime=DATEADD(minute, -1, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=12419",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 2000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12419",
+                    "expect": {
+                        "NotificationAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'AlipayPlusMaxIntervalForGetStatus' THEN 10 WHEN name = 'AlipayPlusMinIntervalForGetStatus' THEN 3 WHEN name = 'AlipayPlusWinServiceMaxStatusAttemptsCounter' THEN 10 END WHERE name IN ('AlipayPlusMaxIntervalForGetStatus', 'AlipayPlusMinIntervalForGetStatus', 'AlipayPlusWinServiceMaxStatusAttemptsCounter'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlus_PaymentsVersions set StatusAttemptsCounter=1 where RowID in(  select top(1) RowID from AlipayPlus_PaymentsVersions where PaymentID=12138 order by RowID desc)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET InputDateTime=DATEADD(minute, -5, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=12138",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12138",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'AlipayPlusMaxIntervalForGetStatus' THEN 10 WHEN name = 'AlipayPlusMinIntervalForGetStatus' THEN 3 WHEN name = 'AlipayPlusWinServiceMaxStatusAttemptsCounter' THEN 10 END WHERE name IN ('AlipayPlusMaxIntervalForGetStatus', 'AlipayPlusMinIntervalForGetStatus', 'AlipayPlusWinServiceMaxStatusAttemptsCounter'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlus_PaymentsVersions set StatusAttemptsCounter=1 where RowID in(  select top(1) RowID from AlipayPlus_PaymentsVersions where PaymentID=12443 order by RowID desc)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET InputDateTime=DATEADD(minute, -5, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=12443",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12443",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Open",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "can't find open transaction at provider"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'AlipayPlusMaxIntervalForGetStatus' THEN 10 WHEN name = 'AlipayPlusMinIntervalForGetStatus' THEN 3 END WHERE name IN ('AlipayPlusMaxIntervalForGetStatus', 'AlipayPlusMinIntervalForGetStatus'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET InputDateTime=DATEADD(minute, -5, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=12691",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12691",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Expired",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "expired transactions are set as fail - 4 "
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'AlipayPlusMaxIntervalForGetStatus' THEN 10 WHEN name = 'AlipayPlusMinIntervalForGetStatus' THEN 3 END WHERE name IN ('AlipayPlusMaxIntervalForGetStatus', 'AlipayPlusMinIntervalForGetStatus'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET InputDateTime=DATEADD(minute, -5, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=11813",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=11813",
+                    "expect": {
+                        "Status": 5,
+                        "StatusAttemptsCounter":2 
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus InputDateTime NOT BETWEEN @MinStatusUpdateMinutes AND @MaxStatusUpdateMinutes",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "can't find successfull transaction at provider"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'AlipayPlusMaxIntervalForGetStatus' THEN 10 WHEN name = 'AlipayPlusMinIntervalForGetStatus' THEN 3 END WHERE name IN ('AlipayPlusMaxIntervalForGetStatus', 'AlipayPlusMinIntervalForGetStatus'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET InputDateTime=DATEADD(minute, -2, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE PaymentID=12138",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12138",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE PaymentID=12473",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 6000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime  from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12473",
+                    "expect": {
+                        "NotificationAttemptsCounter":0 
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter NotificationAttemptsTimeDifference < @Hours",
+                "tags": ["winservice","Notification"],
+                "description": "negative",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -2, GETUTCDATE())  WHERE PaymentID=12476",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime  from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12476",
+                    "expect": {
+                        "NotificationAttemptsCounter":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=21923",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,  LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlusRefunds  WHERE ID=21923",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success NotificatedDate=InputDateTime",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET  InputDateTime = DATEADD(hour, -1, GETUTCDATE())  WHERE ID=21918",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET  IsNotificated= 'False', NotificatedDate= InputDateTime, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=21918",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlusRefunds  WHERE ID=21918",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET  IsNotificated= 'False', LastNotificationAttemptDateTime=GETUTCDATE(), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4,  PaymentStateDefID = 2  WHERE ID=21908",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,   LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from  AlipayPlusRefunds  WHERE ID=21908",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":4,
+                        "Status":2  
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET  IsNotificated= 'False', InputDatetime=DATEADD(hour, -1, GETUTCDATE()), NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE ID=21931",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,  LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21931",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4  
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE ID=21930",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,   LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21930",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET  IsNotificated= 1, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE ID=21929",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,   LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21929",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET  IsNotificated= 0, NotificatedDate= NULL, InputDatetime=DATEADD(hour, -1, GETUTCDATE()), LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE ID=21927",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,   LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21927",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET  IsNotificated= 'False', NotificatedDate= NULL, InputDatetime=(select DATEADD(minute, 30, DATEADD(hour, 17, CAST(CAST(DATEADD(day,0, GETDATE()) AS DATE) AS DATETIME)))), StatusAttemptsCounter=10, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE ID=21912",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":2000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate,  LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21912",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=DATEADD(minute, -59, DATEADD(hour, -1, GETUTCDATE()))  WHERE ID=21911",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 8000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime  from AlipayPlusRefunds  WHERE ID=21911",
+                    "expect": {
+                        "NotificationAttemptsCounter":0 ,
+                        "LastNotificationAttemptDateTime":{
+                            "should":["equal",null]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter LastNotificationAttemptDateTime < NotificationAttemptsTimeDifference",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime=GETUTCDATE()  WHERE ID=21910",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 3000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,   LastNotificationAttemptDateTime from AlipayPlusRefunds  WHERE ID=21910",
+                    "expect": {
+                        "NotificationAttemptsCounter":4,
+                        "LastNotificationAttemptDateTime":{
+                            "should":["not.equal",null]
+                        }  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter NotificationAttemptsCounter < @NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE WHEN name = 'NotificationAttemptsTimeDifference' THEN 1 WHEN name = 'NumberOfNotificationAttempts' THEN 3 END WHERE name IN ('NotificationAttemptsTimeDifference', 'NumberOfNotificationAttempts');", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusRefunds SET   NotificationAttemptsCounter =2,  LastNotificationAttemptDateTime=DATEADD(minute, -1, DATEADD(hour, -1, GETUTCDATE()))  WHERE ID=21907",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 2000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter  from AlipayPlusRefunds  WHERE ID=21907",
+                    "expect": {
+                        "NotificationAttemptsCounter":2  
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Retry Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 180 WHEN name = 'RetryRefundMinTimeInterval' THEN 1  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET InputDateTime=DATEADD(minute, -5, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=21937",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlusRefunds  WHERE ID=21937",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Retry Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 180 WHEN name = 'RetryRefundMinTimeInterval' THEN 1  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET InputDateTime=DATEADD(minute, -50, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=21895",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from  AlipayPlusRefunds  WHERE ID=21895",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Retry DATEDIFF NOT BETWEEN @RetryRefundMinInterval AND @RetryRefundMaxInterval,  < RetryRefundMinInterval",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 180 WHEN name = 'RetryRefundMinTimeInterval' THEN 10  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET InputDateTime=DATEADD(minute, -9, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=21748",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from AlipayPlusRefunds  WHERE ID=21748",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 180 WHEN name = 'RetryRefundMinTimeInterval' THEN 1  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Retry DATEDIFF NOT BETWEEN @RetryRefundMinInterval AND @RetryRefundMaxInterval,  >  RetryRefundMaxInterval",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 10 WHEN name = 'RetryRefundMinTimeInterval' THEN 1  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlusRefunds SET InputDateTime=DATEADD(minute, -11, GETUTCDATE()), PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=21718",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from AlipayPlusRefunds  WHERE ID=21718",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET value = CASE  WHEN name = 'RetryRefundMaxTimeInterval' THEN 180 WHEN name = 'RetryRefundMinTimeInterval' THEN 1  END WHERE name IN ('RetryRefundMaxTimeInterval', 'RetryRefundMinTimeInterval'); ",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 2  WHERE ID=57175 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=57175",
+                    "expect": {
+                        "Status": 2,
+                        "LastNotifiedPreapprovalStateDefID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 4  WHERE ID=35947 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=35947",
+                    "expect": {
+                        "Status": 4,
+                        "LastNotifiedPreapprovalStateDefID":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Cancel",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 3  WHERE ID=41485 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=41485",
+                    "expect": {
+                        "Status": 3,
+                        "LastNotifiedPreapprovalStateDefID":3
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=4,  PreapprovalStateDefID = 2  WHERE ID=36414 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":10000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=51918",
+                    "expect": {
+                        "Status": 2,
+                        "LastNotifiedPreapprovalStateDefID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=2,  PreapprovalStateDefID = 4  WHERE ID=61189 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=61189",
+                    "expect": {
+                        "Status": 4,
+                        "LastNotifiedPreapprovalStateDefID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Refresh Token",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "nu e clar daca merge testat"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 2  WHERE ID=41493 and PaymentTypeID=104 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE AlipayPlusPreapprovalRequests SET  AccessTokenExpiryTime=DATEADD(day, 1, GETUTCDATE()) WHERE PreapprovalID=41493 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=41493",
+                    "expect": {
+                        "Status": 2
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Expiration",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "it is set to S Success"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE  AlipayPlus_PaymentsMaterialised set PaymentStateDefID=1, ProviderResultStatus='U' ,ProviderResultCode='PAYMENT_IN_PROCESS' , PreapprovalID=NULL,  InputDateTime=DATEADD(minute, -18, GETUTCDATE())  WHERE PaymentID=11490",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.AlipayPlus.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, ProviderResultStatus, ProviderResultCode from  AlipayPlus_PaymentsMaterialised  WHERE PaymentID=12138",
+                    "expect": {
+                        "ProviderResultStatus": "F",
+                        "ProviderResultCode":"CANCEL_WINDOW_EXCEED",
+                        "Status":1
+                    }
+                }
+            ]
+        }
+        
+    ]
+} 

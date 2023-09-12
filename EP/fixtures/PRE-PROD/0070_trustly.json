@@ -1,0 +1,211 @@
+{
+    "method": {
+        "ID": 70,
+        "name": "Trustly",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>trustly</PaymentMethod><IPAddress>82.208.151.136</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>SEK</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Country>SE</Country><Language>en-US</Language><Description>VS EP Automated test payment</Description><CustomerFirstName>Mada</CustomerFirstName><CustomerLastName>Rulz</CustomerLastName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Country",
+                        "Language"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='list-item-deposit.bank.sweden.ndea']/div",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//*[@type='checkbox']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='continue-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//input[@name='loginid']",
+                            "value": "198810091234",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@data-testid='continue-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='Input-password-challenge_response']",
+                            "value": "//*[contains(text(),'One-time code')]/following-sibling::*",
+                            "action": "copyType"
+                        },
+                        {
+                            "path": "//*[@data-testid='primary-button-body']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//span[.='Checking account']/parent::div",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='account-number']"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 7",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='primary-button-body']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 8",
+                    "url": "checkout.test.trustly.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='Input-password-challenge_response']",
+                            "value": "//*[contains(text(),'One-time code')]/following-sibling::*",
+                            "action": "copyType"
+                        },
+                        {
+                            "path": "//*[@data-testid='primary-button-body']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 9",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [TrustlyPayments].[PaymentID] as ID ,[TrustlyPayments].[GPaymentID] as TransactionID ,  [TrustlyPayments].[MerchantID] as MerchantID , [TrustlyPayments].[MerchantTID] as MerchantTID , [TrustlyPayments].[Amount] as Amount ,[TrustlyPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [TrustlyPayments].[Description] as Description     FROM [Europay].[dbo].[TrustlyPayments],  [PaymentStateDefs] where [TrustlyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [TrustlyPayments].GPaymentID = @TRXID and [TrustlyPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>trustly</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><Payout><MTID>$MTID</MTID><Amount>100</Amount><Currency>RON</Currency><Description>VS EP Automated test payout</Description><CustomerEmail>test@test.com</CustomerEmail><CustomerBankAccountID>1527039846</CustomerBankAccountID></Payout></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail",
+                        "CustomerBankAccountID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [TrustlyPayments].[PaymentID] as ID ,[TrustlyPayments].[GPaymentID] as TransactionID ,  [TrustlyPayments].[MerchantID] as MerchantID , [TrustlyPayments].[MerchantTID] as MerchantTID , [TrustlyPayments].[Amount] as Amount ,[TrustlyPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [TrustlyPayments].[Description] as Description  , ActionTypeID  FROM [Europay].[dbo].[TrustlyPayments],  [PaymentStateDefs] where [TrustlyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [TrustlyPayments].GPaymentID = @TRXID and [TrustlyPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open"
+                    }
+                }
+            ]
+        }
+    ]
+}       

@@ -1,0 +1,53 @@
+{
+    "method": {
+        "ID": 92,
+        "name": "Cellulant",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_PayOption1",
+                "tags": [],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>cellulant</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><CustomerFirstName>Irina</CustomerFirstName><CustomerLastName>Toea</CustomerLastName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerCountry>KE</CustomerCountry><CustomerPhone>254722487698</CustomerPhone><OptionID>1</OptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100",
+                        "Instructions": {
+                            "regex": "(.+PIN.+)"
+                        }
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [CellulantPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[CellulantPayments], [PaymentStateDefs] where [CellulantPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CellulantPayments].GPaymentID = @TRXID and [CellulantPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}       

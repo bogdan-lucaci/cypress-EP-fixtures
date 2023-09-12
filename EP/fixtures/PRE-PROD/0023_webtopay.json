@@ -1,0 +1,69 @@
+{
+    "method": {
+        "ID": 23,
+        "name": "webtopay",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><InitiatePaymentRequest version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><MID>$MID</MID><PaymentMethod>webtopay</PaymentMethod><ClientIPAddress>82.208.151.136</ClientIPAddress><Details><Payment><Amount>100</Amount><Currency>EUR</Currency><MTID>$MTID</MTID><Language>ENG</Language><CountryCode>BE</CountryCode><Description>VS EP Automated Test Payment</Description><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CustomerEmail>cristina.pascarel@smart2tech.com</CustomerEmail></Payment></Details></InitiatePaymentRequest>",
+                    "hashElements": [],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "bank.paysera.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='country-select_msdd']"
+                        },
+                        {
+                            "path": "//div[@data-payment-name='wallet']"
+                        },
+                        {
+                            "path": "//a[contains(@href,'/cancel')]"
+                        },
+                        {
+                            "path": "//span[@class='order-number-wrapper']"
+                        },
+                        {
+                            "path": "//div[@class='amount']/span[@class='bigblue']"
+                        },
+                        {
+                            "path": "//div[contains(@class,'buyer-block')]"
+                        }
+                    ]
+                }, 
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [WebToPayPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[WebToPayPayments] with (NOLOCK), [PaymentStateDefs] where [WebToPayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and WebToPayPayments.GPaymentID = @TRXID and [WebToPayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

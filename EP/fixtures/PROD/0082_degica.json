@@ -1,0 +1,400 @@
+{
+    "method": {
+        "ID": 82,
+        "name": "Degica",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_1",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>degica</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>JPY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><PayOption>1</PayOption><CustomerFirstName>Mada</CustomerFirstName><CustomerLastName>Rulz</CustomerLastName><CustomerPhone>324234</CustomerPhone><CustomerEmail>t@t.com</CustomerEmail><Language>en</Language></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='familyName']"
+                        },
+                        {
+                            "path": "//*[@id='givenName']"
+                        },
+                        {
+                            "path": "//*[@id='email']"
+                        },
+                        {
+                            "path": "//*[@id='familyNameKana']",
+                            "value": "Rulz",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='givenNameKana']",
+                            "value": "Mada",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='phone']",
+                            "value": "1016566123",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@value = 'Pay ¥1']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//div[@class='total-price']/span[.='¥1']"
+                        },
+                        {
+                            "path": "//div/span[contains(text(),'Thank you for your payment!')]"
+                        },
+                        {
+                            "path": "//a[@class='return']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [DegicaPayments].[PaymentID] as ID ,[DegicaPayments].[GPaymentID] as TransactionID ,  [DegicaPayments].[MerchantID] as MerchantID ,[DegicaPayments].[MerchantTID] as MerchantTID , [DegicaPayments].[Amount] as Amount ,  [DegicaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [DegicaPayments].[Description] as Description   FROM [Europay].[dbo].[DegicaPayments], [PaymentStateDefs]   where [DegicaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [DegicaPayments].GPaymentID = @TRXID and [DegicaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_2",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>degica</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>JPY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><PayOption>2</PayOption><CustomerFirstName>Mada</CustomerFirstName><CustomerLastName>Rulz</CustomerLastName><CustomerPhone>0912121212</CustomerPhone><CustomerEmail>t@t.com</CustomerEmail><Language>en</Language></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='email']"
+                        },
+                        {
+                            "path": "//*[@id='given_name']"
+                        },
+                        {
+                            "path": "//*[@id='email']"
+                        },
+                        {
+                            "path": "//*[contains(@value,'seven-eleven')]"
+                        },
+                        {
+                            "path": "//input[@value='Pay ¥191']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//div[@class='total-price']/span[.='¥191']"
+                        },
+                        {
+                            "path": "//div/span[contains(text(),'To complete a payment at 7-Eleven')]"
+                        },
+                        {
+                            "path": "//a[@class='return']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [DegicaPayments].[PaymentID] as ID ,[DegicaPayments].[GPaymentID] as TransactionID ,  [DegicaPayments].[MerchantID] as MerchantID ,[DegicaPayments].[MerchantTID] as MerchantTID , [DegicaPayments].[Amount] as Amount ,  [DegicaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [DegicaPayments].[Description] as Description   FROM [Europay].[dbo].[DegicaPayments], [PaymentStateDefs]   where [DegicaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [DegicaPayments].GPaymentID = @TRXID and [DegicaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_3",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>degica</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>JPY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><PayOption>3</PayOption><CustomerFirstName>Mada</CustomerFirstName><CustomerLastName>Rulz</CustomerLastName><CustomerPhone>0912121212</CustomerPhone><CustomerEmail>t@t.com</CustomerEmail><Language>en</Language></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='email']"
+                        },
+                        {
+                            "path": "//*[@id='name']",
+                            "value": "John Doe",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='number']",
+                            "value": "378282246310005",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='expiration']",
+                            "value": "05/29",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='verification']",
+                            "value": "123",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@value = 'Pay ¥1']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!') or contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DegicaPayments].[PaymentID] as ID ,[DegicaPayments].[GPaymentID] as TransactionID ,  [DegicaPayments].[MerchantID] as MerchantID ,[DegicaPayments].[MerchantTID] as MerchantTID , [DegicaPayments].[Amount] as Amount ,  [DegicaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [DegicaPayments].[Description] as Description   FROM [Europay].[dbo].[DegicaPayments], [PaymentStateDefs]   where [DegicaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [DegicaPayments].GPaymentID = @TRXID and [DegicaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_4",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>degica</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>JPY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><PayOption>4</PayOption><CustomerFirstName>Mada</CustomerFirstName><CustomerLastName>Rulz</CustomerLastName><CustomerPhone>324234</CustomerPhone><CustomerEmail>t@t.com</CustomerEmail><Language>en</Language></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='familyName']"
+                        },
+                        {
+                            "path": "//*[@id='givenName']"
+                        },
+                        {
+                            "path": "//*[@id='email']"
+                        },
+                        {
+                            "path": "//*[@id='familyNameKana']",
+                            "value": "Rulz",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='givenNameKana']",
+                            "value": "Mada",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='phone']",
+                            "value": "1016566123",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@value = 'Pay ¥191']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "komoju.com",
+                    "elements": [
+                        {
+                            "path": "//div[@class='total-price']/span[.='¥191']"
+                        },
+                        {
+                            "path": "//div/span[contains(text(),'Thank you for your payment!')]"
+                        },
+                        {
+                            "path": "//a[@class='return']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [DegicaPayments].[PaymentID] as ID ,[DegicaPayments].[GPaymentID] as TransactionID ,  [DegicaPayments].[MerchantID] as MerchantID ,[DegicaPayments].[MerchantTID] as MerchantTID , [DegicaPayments].[Amount] as Amount ,  [DegicaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [DegicaPayments].[Description] as Description   FROM [Europay].[dbo].[DegicaPayments], [PaymentStateDefs]   where [DegicaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [DegicaPayments].GPaymentID = @TRXID and [DegicaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1
+                    }
+                }
+            ]
+        }
+    ]
+}
+        

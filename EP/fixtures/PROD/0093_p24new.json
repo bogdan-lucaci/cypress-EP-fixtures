@@ -1,0 +1,77 @@
+{
+    "method": {
+        "ID": 93,
+        "name": "P24New Payments",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "IsRedirected",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>p24new</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>2</Amount><Currency>PLN</Currency><Description>VS EP Automated Test Payment</Description><Language>en</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CustomerName>Madalina Rulz</CustomerName><CustomerEmailAddress>mada@smart2pay.ro</CustomerEmailAddress><CustomerCountryCode>RO</CustomerCountryCode><CustomerCity>Iasi</CustomerCity><CustomerAddress>Str. Sf. Lazar nr. 37</CustomerAddress><CustomerZipCode>700046</CustomerZipCode></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "2"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox-go.przelewy24.pl",
+                    "elements": [
+                        {
+                            "path": "//div[@class='standard-form standard-form--shadow-box'][@data-for='BLIK_-_PSP-0-0-tip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "sandbox-go.przelewy24.pl",
+                    "elements": [
+                        {
+                            "path": "//div[@class='transaction-info__money-amount']"
+                        },
+                        {
+                            "path": "//span[@class='transaction-info__merchant-id']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [P24NewPayments].[PaymentID] as ID ,[P24NewPayments].[GPaymentID] as TransactionID ,  [P24NewPayments].[MerchantID] as MerchantID ,[P24NewPayments].[MerchantTID] as MerchantTID , [P24NewPayments].[Amount] as Amount ,  [P24NewPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [P24NewPayments].[Description] as Description  FROM [Europay].[dbo].[P24NewPayments], [PaymentStateDefs]   where [P24NewPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [P24NewPayments].GPaymentID = @TRXID and [P24NewPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.02
+                    }
+                }
+            ]
+        }
+    ]
+}

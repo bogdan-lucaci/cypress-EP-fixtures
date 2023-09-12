@@ -1,0 +1,2142 @@
+{
+    "method": {
+        "ID": 101,
+        "name": "Nuapay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "Update Nuapay tables",
+                "tags": [],
+                "description": "Update Nuapay tables to reduce the number of transactions ready for GetNotification or GetStatus winservices",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments set PaymentStateDefID=5 , Description='Updated by winservice script' where PaymentStateDefID=1 and SubID=1016",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "UPDATE NuapayPayments set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()), Description='Updated by winservice script', LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID NOT IN (0,1,14) and SubID=1016 and (IsNotificated =0 or IsNotificated is NULL)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds set PaymentStateDefID=5 , Description='Updated by winservice script' where PaymentStateDefID=1 and SubID=1016 ",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()),Description='Updated by winservice script', LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID <> 1 and SubID=1016 and (IsNotificated =0 or IsNotificated is NULL)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts set PaymentStateDefID=5 ,InputDateTime=DATEADD(minute, -1, GETUTCDATE()) ,Description='Updated by winservice script' where PaymentStateDefID=1 and SubID=1016",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts set IsNotificated=1, NotificatedDate=DATEADD(minute, -1, GETUTCDATE()),Description='Updated by winservice script', LastNotifiedPaymentStateDefID=PaymentStateDefID where PaymentStateDefID <> 1 and SubID=1016 and (IsNotificated =0 or IsNotificated is NULL)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests  set PreapprovalStateDefID=3, Description='Updated by automation script' where ID in (SELECT  PR.ID from dbo.PreapprovalRequests  as PR inner join dbo.NuapayPreapprovalRequests as NPR on PR.ID = NPR.PreapprovalID where   PR.PaymentTypeID = 101 AND ( (PR.PreapprovalStateDefID = 1) OR ((PR.PreapprovalStateDefID = 2) AND (NPR.ProviderPreapprovalType is not null)  AND (NPR.HasSuccessPayment is not null)  AND (NPR.ProviderPreapprovalType = 'OOFF')  AND (NPR.HasSuccessPayment = 1) )) AND nullif(NPR.ProviderPreapprovalID, '') is not null)",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":1000,
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests set NotificationDateTime=DATEADD(minute, -1, GETUTCDATE()),Description='Updated by winservice script', LastNotifiedPreapprovalStateDefID=PreapprovalStateDefID where PreapprovalStateDefID <> 1 and SubID in (1016,1261,1069,1000) and PaymentTypeID = 101 and NotificationDateTime IS NULL",
+                    "expect": {
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=31360",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31360",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=31360",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31360",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificatedDate": null,
+                        "LastNotifiedPaymentStateDefID":null,
+                        "NotificationAttemptsCounter":4,
+                        "LastNotificationAttemptDateTime":null,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE ID=31364",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31364",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE ID=31366",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31366",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE ID=31321",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31321",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE ID=31359",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31359",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PaymentNotification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE ID=31346",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31346",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET   NotificationAttemptsCounter =4,  LastNotificationAttemptDateTime='2023-05-05 03:53:52.567'  WHERE ID=31319",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 30000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31319",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "LastNotificationAttemptDateTime":null
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=31360",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from NuapayPayments  WHERE ID=31360",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Success StatusAttemptsCounter > NuapayNumberOfGetStatusAttempts",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6 WHERE ID=31295",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from NuapayPayments  WHERE ID=31295",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":6
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Success with no ProviderTransactionID",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1, ProviderTransactionID=NULL  WHERE ID=31295",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayPayments   WHERE ID=31295",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=31364",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayPayments  WHERE ID=31364",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment GetStatus Open",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1  WHERE ID=30699",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayPayments  WHERE ID=30699",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payment Reset Status Attempts Counter",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6 WHERE ID=31295",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select StatusAttemptsCounter from NuapayPayments  WHERE ID=31295",
+                    "expect": {
+                        "StatusAttemptsCounter":0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=878",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds  WHERE ID=878",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=878",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds WHERE ID=878",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificatedDate": null,
+                        "LastNotifiedPaymentStateDefID":null,
+                        "NotificationAttemptsCounter":4,
+                        "LastNotificationAttemptDateTime":null,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE ID=879",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds  WHERE ID=879",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE ID=878",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":3000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds WHERE ID=878",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE ID=880",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds WHERE ID=880",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4
+                    }
+                }
+            ]
+        },        
+        {
+            "test": {
+                "name": "Refund Notification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, ProviderTransactionID=NULL, PaymentStateDefID = 1  WHERE ID=671",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds  WHERE ID=671",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET   NotificationAttemptsCounter =4, LastNotificationAttemptDateTime='2023-05-01 02:43:31.887'   WHERE ID=910",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayRefunds  WHERE ID=910",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "LastNotificationAttemptDateTime":null
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=784",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayRefunds  WHERE ID=784",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success StatusAttemptsCounter > NuapayNumberOfGetStatusAttempts",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "reset status is executed and attept counter is set to 0"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6 , InputDateTime = DATEADD(minute, -10, GETUTCDATE()) WHERE ID=817",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from NuapayRefunds  WHERE ID=817",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":6
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Success with no ProviderTransactionID",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1, ProviderTransactionID=NULL  WHERE ID=863",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayRefunds  WHERE ID=863",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=864",
+                    "expect": { }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayRefunds  WHERE ID=864",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund Reset Status Attempts Counter",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayRefunds SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6 WHERE ID=909",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select StatusAttemptsCounter from NuapayRefunds  WHERE ID=909",
+                    "expect": {
+                        "StatusAttemptsCounter":0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=2237",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts  WHERE ID=2237",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Success NotificationAttemptsCounter > NumberOfNotificationAttempts",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =4, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=2190",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts  WHERE ID=2190",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificatedDate": null,
+                        "LastNotifiedPaymentStateDefID":null,
+                        "NotificationAttemptsCounter":4,
+                        "LastNotificationAttemptDateTime":null,
+                        "Status":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 4  WHERE ID=2194",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts  WHERE ID=2194",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":4,
+                        "NotificationAttemptsCounter":2,
+                        "Status":4
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=4, NotificationAttemptsCounter =1, PaymentStateDefID = 2  WHERE ID=2193",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts  WHERE ID=2193",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2,
+                        "Status":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 1, LastNotifiedPaymentStateDefID=2, NotificationAttemptsCounter =1, PaymentStateDefID = 4  WHERE ID=2185",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":3000,
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts WHERE ID=2185",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":1,
+                        "Status":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Exception",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 14  WHERE ID=2219",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts WHERE ID=2219",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "Status":14
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Notification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 1  WHERE ID=2249",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts  WHERE ID=2249",
+                    "expect": {
+                        "IsNotificated": false,
+                        "NotificationAttemptsCounter":1,
+                        "LastNotificationAttemptDateTime":null,
+                        "Status":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Reset Notification Counter",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET  Value = 3 where name='NumberOfNotificationAttempts'", 
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET   NotificationAttemptsCounter =4, LastNotificationAttemptDateTime='2023-04-12 03:56:18.547'   WHERE ID=2222",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select  NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayouts WHERE ID=2222",
+                    "expect": {
+                        "NotificationAttemptsCounter":0,
+                        "LastNotificationAttemptDateTime":null
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=2196",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from NuapayPayouts  WHERE ID=2196",
+                    "expect": {
+                        "Status": 2,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout GetStatus Success StatusAttemptsCounter > NuapayNumberOfGetStatusAttempts",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6 WHERE ID=1911",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":2000,
+                    "query": "Select PaymentStateDefID  as Status,StatusAttemptsCounter from NuapayPayouts WHERE ID=1911",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":6
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payouts GetStatus Success with no ProviderTransactionID",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1, ProviderTransactionID=NULL  WHERE ID=2191",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status , StatusAttemptsCounter from NuapayPayouts  WHERE ID=2191",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1 WHERE ID=2187",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayPayouts WHERE ID=2187",
+                    "expect": {
+                        "Status": 4,
+                        "StatusAttemptsCounter":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout GetStatus Open",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=1  WHERE ID=2196",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID  as Status, StatusAttemptsCounter from NuapayPayouts WHERE ID=2196",
+                    "expect": {
+                        "Status": 1,
+                        "StatusAttemptsCounter":1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Payout Reset Status Attempts Counter",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE Settings SET Value=5 where Name='NuapayNumberOfGetStatusAttempts'",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayouts SET  PaymentStateDefID = 1 , StatusAttemptsCounter=6, ProviderTransactionID=NULL WHERE ID=2227",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":5000,
+					"serverName": "APM_DB",
+                    "query": "Select StatusAttemptsCounter from NuapayPayouts  WHERE ID=2227",
+                    "expect": {
+                        "StatusAttemptsCounter":0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Success",
+                "tags": ["winservice","Notification","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 2  WHERE ID=62954",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=62954",
+                    "expect": {
+                        "Status": 2,
+                        "LastNotifiedPreapprovalStateDefID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 4  WHERE ID=62920",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=62920",
+                    "expect": {
+                        "Status": 4,
+                        "LastNotifiedPreapprovalStateDefID":4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Success after Fail",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=4,  PreapprovalStateDefID = 2  WHERE ID=63030",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=63030",
+                    "expect": {
+                        "Status": 2,
+                        "LastNotifiedPreapprovalStateDefID":2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval Notification Fail after Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= '2023-05-05 07:12:29.730', LastNotifiedPreapprovalStateDefID=2,  PreapprovalStateDefID = 4  WHERE ID=59526",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=59526",
+                    "expect": {
+                        "Status": 4,
+                        "LastNotifiedPreapprovalStateDefID":4
+                    }
+                }
+            ]
+        },        
+        {
+            "test": {
+                "name": "Preapproval Notification Open",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET  NotificationDateTime= NULL, LastNotifiedPreapprovalStateDefID=NULL,  PreapprovalStateDefID = 1  WHERE ID=62906",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status, LastNotifiedPreapprovalStateDefID from PreapprovalRequests  WHERE ID=62906",
+                    "expect": {
+                        "Status": 1,
+                        "LastNotifiedPreapprovalStateDefID":null
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval GetStatus Success",
+                "tags": ["winservice","GetStatus","INT_Release"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET   PreapprovalStateDefID = 1  WHERE ID=62954",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":8000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status from PreapprovalRequests  WHERE ID=62954",
+                    "expect": {
+                        "Status": 2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval GetStatus Success with conditions",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET   PreapprovalStateDefID = 2   WHERE ID=62904",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPreapprovalRequests SET   HasSuccessPayment = 1, ProviderPreapprovalType='OOFF'   WHERE PreapprovalID=62904",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",                    
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status from PreapprovalRequests  WHERE ID=62904",
+                    "expect": {
+                        "Status": 2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Preapproval GetStatus Fail",
+                "tags": ["winservice","GetStatus"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE PreapprovalRequests SET    PreapprovalStateDefID = 1  WHERE ID=59692",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":10000,
+					"serverName": "APM_DB",
+                    "query": "Select PreapprovalStateDefID as Status from PreapprovalRequests  WHERE ID=59692",
+                    "expect": {
+                        "Status": 4
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PreapprovedPayment Notification Success",
+                "tags": ["winservice","Notification"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NuapayPayments SET  IsNotificated= 'False', NotificatedDate= NULL, LastNotifiedPaymentStateDefID=NULL, NotificationAttemptsCounter =1, LastNotificationAttemptDateTime=NULL, PaymentStateDefID = 2  WHERE ID=31268",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay":3000,
+					"serverName": "APM_DB",
+                    "query": "Select PaymentStateDefID as Status, IsNotificated, NotificatedDate, LastNotifiedPaymentStateDefID, NotificationAttemptsCounter,LastNotificationAttemptDateTime from NuapayPayments  WHERE ID=31268",
+                    "expect": {
+                        "IsNotificated": true,
+                        "LastNotifiedPaymentStateDefID":2,
+                        "NotificationAttemptsCounter":2
+
+
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Nuapay Get Banks",
+                "tags": ["winservice","GetBanks"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Dependent on GetBanksExecutionHour winservice parameter"
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "Delete from NuapayBanks",
+                    "expect": {
+
+                    }
+                },
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.Nuapay.WinService"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "select COUNT(ID) as NumberOfBanks from NuapayBanks",
+                    "expect": {
+                        "NumberOfBanks": 4
+
+
+                    }
+                }
+            ]
+        }
+
+
+
+        
+    ]
+} 

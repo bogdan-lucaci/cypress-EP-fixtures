@@ -1,0 +1,720 @@
+{
+    "method": {
+        "ID": 58,
+        "name": "PWMB",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>25</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Rulz</CustomerName><CustomerEmail>test@email.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "25"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 6000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//input[@id='lbx-listBank-inputSearch']",
+                            "value": "Demo Bank",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//span[.='Demo Bank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='slider-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe", "#lbx-iframeAuthenticate"],
+                    "elements": [
+                        {
+                            "path": "//input[@aria-label='Demo Bank, Username']",
+                            "value": "AutoTest",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@aria-label='Demo Bank, Password']",
+                            "value": "AutoTestP!@#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='lbx-formLogin-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='lbx-accountList-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[PaymentID] as ID ,[PWMBPayments].[GPaymentID] as TransactionID , [PWMBPayments].[MerchantID] as MerchantID ,[PWMBPayments].[MerchantTID] as MerchantTID ,[PWMBPayments].[Amount] as Amount ,[PWMBPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[PWMBPayments].[Description] as Description    FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PWMBPayments].GPaymentID = @TRXID and [PWMBPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 0.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>25</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Rulz</CustomerName><CustomerEmail>test@email.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "25"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 6000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//input[@id='lbx-listBank-inputSearch']",
+                            "value": "Demo Bank",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//span[.='Demo Bank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='slider-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe", "#lbx-iframeAuthenticate"],
+                    "elements": [
+                        {
+                            "path": "//input[@aria-label='Demo Bank, Username']",
+                            "value": "AutoTest",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@aria-label='Demo Bank, Password']",
+                            "value": "AutoTestP!@#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='lbx-formLogin-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='lbx-accountList-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[PaymentID] as ID ,[PWMBPayments].[GPaymentID] as TransactionID , [PWMBPayments].[MerchantID] as MerchantID ,[PWMBPayments].[MerchantTID] as MerchantTID ,[PWMBPayments].[Amount] as Amount ,[PWMBPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[PWMBPayments].[Description] as Description    FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PWMBPayments].GPaymentID = @TRXID and [PWMBPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 0.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>25</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "25"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[Amount] as Amount, [PWMBPayments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [PWMBPayments].[Description] as Description FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [PWMBPayments].GPaymentID=@TRXID and [PWMBPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.25,
+                        "ActionTypeID": 2
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[Amount] as Amount, [PWMBPayments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [PWMBPayments].[Description] as Description FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [PWMBPayments].GPaymentID=@TRXID and [PWMBPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.25,
+                        "ActionTypeID": 2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>25</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>VS EP Automated Test Payment</Description><CustomerName>Mada Rulz</CustomerName><CustomerEmail>test@email.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "25"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 6000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//input[@id='lbx-listBank-inputSearch']",
+                            "value": "Demo Bank",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//span[.='Demo Bank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='slider-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe", "#lbx-iframeAuthenticate"],
+                    "elements": [
+                        {
+                            "path": "//input[@aria-label='Demo Bank, Username']",
+                            "value": "AutoTest",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@aria-label='Demo Bank, Password']",
+                            "value": "AutoTestP!@#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='lbx-formLogin-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='lbx-accountList-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[PaymentID] as ID ,[PWMBPayments].[GPaymentID] as TransactionID , [PWMBPayments].[MerchantID] as MerchantID ,[PWMBPayments].[MerchantTID] as MerchantTID ,[PWMBPayments].[Amount] as Amount ,[PWMBPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[PWMBPayments].[Description] as Description    FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PWMBPayments].GPaymentID = @TRXID and [PWMBPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 0.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>15</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "15"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [PWMBPayments].[Amount] as Amount, [PWMBPayments].[ActionTypeID] as ActionTypeID, [PaymentStateDefs].[Name] as Status, [PWMBPayments].[Description] as Description FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [PWMBPayments].GPaymentID=@TRXID and [PWMBPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.15,
+                        "ActionTypeID": 2
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><Amount>100</Amount><Currency>USD</Currency><PaymentType>2</PaymentType><CustomerName>John Doe</CustomerName><CustomerEmail>jdoe@test.com</CustomerEmail><Description>VS EP Automated Test Payment</Description><ReturnURL>https://demo2.smart2pay.com/_redirectURLs/success.html</ReturnURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "Amount",
+                        "Currency",
+                        "PaymentType",
+                        "ReturnURL"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/PWMB/Landing/PreapprovalIntermediatePage.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 6000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "#lbx-listBank-inputSearch",
+                            "value": "Demo Bank",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//span[.='Demo Bank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='slider-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe", "#lbx-iframeAuthenticate"],
+                    "elements": [
+                        {
+                            "path": "//input[@aria-label='Demo Bank, Username']",
+                            "value": "AutoTest",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@aria-label='Demo Bank, Password']",
+                            "value": "AutoTestP!@#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='lbx-formLogin-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='lbx-accountList-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 58
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT [PWMBPayments].[PaymentID] as ID ,[PWMBPayments].[GPaymentID] as TransactionID ,  [PWMBPayments].[MerchantID] as MerchantID , [PWMBPayments].[MerchantTID] as MerchantTID , [PWMBPayments].[Amount] as Amount ,[PWMBPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PWMBPayments].[Description] as Description  , [PWMBPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[PWMBPayments], [PaymentStateDefs] where [PWMBPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PWMBPayments].GPaymentID = @TRXID and [PWMBPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "ClosePreapproval",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><Amount>100</Amount><Currency>USD</Currency><PaymentType>2</PaymentType><CustomerName>John Doe</CustomerName><CustomerEmail>jdoe@test.com</CustomerEmail><Description>VS EP Automated Test Payment</Description><ReturnURL>https://demo2.smart2pay.com/_redirectURLs/success.html</ReturnURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "Amount",
+                        "Currency",
+                        "PaymentType",
+                        "ReturnURL"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/PWMB/Landing/PreapprovalIntermediatePage.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 6000,
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "#lbx-listBank-inputSearch",
+                            "value": "Demo Bank",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//span[.='Demo Bank']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='slider-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe", "#lbx-iframeAuthenticate"],
+                    "elements": [
+                        {
+                            "path": "//input[@aria-label='Demo Bank, Username']",
+                            "value": "AutoTest",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@aria-label='Demo Bank, Password']",
+                            "value": "AutoTestP!@#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='lbx-formLogin-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "europaytest.smart2pay.com",
+                    "iframes": ["#paywithmybank-iframe"],
+                    "elements": [
+                        {
+                            "path": "//button[@id='lbx-accountList-submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 58
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CLOSE_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><PreapprovalID>$PREAPPROVALID</PreapprovalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "4"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PR.MerchantID, PR.PaymentTypeID AS MethodID, PR.PreapprovalStateDefID, PSD.Name AS Status FROM PreapprovalRequests AS PR LEFT OUTER JOIN PreapprovalStateDefs AS PSD ON PR.PreapprovalStateDefID = PSD.ID WHERE PR.ID = @PREAPPROVALID",
+                    "expect": {
+                        "Status": "ClosedByCustomer",
+                        "MethodID": 58
+                    }
+                }
+            ]
+        }
+    ]
+}

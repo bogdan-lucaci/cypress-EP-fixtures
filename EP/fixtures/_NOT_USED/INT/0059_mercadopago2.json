@@ -1,0 +1,331 @@
+{
+    "method": {
+        "ID": 59,
+        "name": "Mercadopago 2",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "TASK 578036: open_preapproval request issue."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><CustomerEmail>test_user_92023949@testuser.com</CustomerEmail><ReturnURL>http://demo2.smart2pay.com/_redirectURLs/success.html</ReturnURL><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "CustomerEmail"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='options-list__item item-mp_login_row']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 58
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>pwmb</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [MercadoPago2Payments].[PaymentID] as ID ,[MercadoPago2Payments].[GPaymentID] as TransactionID ,  [MercadoPago2Payments].[MerchantID] as MerchantID , [MercadoPago2Payments].[MerchantTID] as MerchantTID , [MercadoPago2Payments].[Amount] as Amount ,[MercadoPago2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [MercadoPago2Payments].[Description] as Description ,58 as MethodID, [MercadoPago2Payments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1,
+                        "MethodID": 58
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>pt-BR</Language><Description>VS EP Automated Test Payment</Description><CustomerName FirstName=\"Andre\" LastName=\"Boesing\" /><CustomerEmail>test_user_61485314@testuser.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='options-list__item item-mp_login_row']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>pt-BR</Language><Description>VS EP Automated Test Payment</Description><CustomerName FirstName=\"Andre\" LastName=\"Boesing\" /><CustomerEmail>test_user_61485314@testuser.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='options-list__item item-mp_login_row']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE MercadoPago2Payments SET PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotificated = 1, NotificatedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>BRL</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from MercadoPago2Payments t1 join MercadoPago2Payments t2 on t1.GPaymentID = t2.ParentPaymentID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 1.00,
+                        "RefundAmount": 1.00,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>pt-BR</Language><Description>VS EP Automated Test Payment</Description><CustomerName FirstName=\"Andre\" LastName=\"Boesing\" /><CustomerEmail>test_user_61485314@testuser.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='options-list__item item-mp_login_row']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE MercadoPago2Payments SET PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotificated = 1, NotificatedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>50</Amount><Currency>BRL</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "50"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from MercadoPago2Payments t1 join MercadoPago2Payments t2 on t1.GPaymentID = t2.ParentPaymentID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 1.00,
+                        "RefundAmount": 0.50,
+                        "RefundStatus": "Failed",
+                        "PaymentAvailableAmount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

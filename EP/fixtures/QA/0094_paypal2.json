@@ -1,0 +1,939 @@
+{
+    "method": {
+        "ID": 94,
+        "name": "Paypal2",
+        "supportMultiple": true
+    },
+    "testCases": [
+        
+        {
+            "test": {
+                "name": "InsertPayinAutomaticCapture",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>carmen.dorin@smart2pay.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":3000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "1,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "CapturePayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>test@test.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#email",
+                            "action": "type",
+                            "value": "carmen.dorin@smart2pay.com"
+                        },
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "1,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>100</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [paypal2Payments].[PaymentID] as ID ,[paypal2Payments].[GPaymentID] as TransactionID ,[paypal2Payments].[MerchantID] as MerchantID , [paypal2Payments].[MerchantTID] as MerchantTID ,[paypal2Payments].[Amount] as Amount ,[paypal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[paypal2Payments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[paypal2Payments] with (NOLOCK), [PaymentStateDefs] where [paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and paypal2Payments.GPaymentID =@TRXID and  [paypal2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "CapturedAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialCapturePayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>test@test.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#email",
+                            "action": "type",
+                            "value": "carmen.dorin@smart2pay.com"
+                        },
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "2,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency, [PayPal2Payments].[CapturedAmount] as CapturedAmount  , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 2.00,
+                        "CapturedAmount": 0.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>100</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "77"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [paypal2Payments].[PaymentID] as ID ,[paypal2Payments].[GPaymentID] as TransactionID ,[paypal2Payments].[MerchantID] as MerchantID , [paypal2Payments].[MerchantTID] as MerchantTID ,[paypal2Payments].[Amount] as Amount ,[paypal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[paypal2Payments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[paypal2Payments] with (NOLOCK), [PaymentStateDefs] where [paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and paypal2Payments.GPaymentID =@TRXID and  [paypal2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "PartiallyCaptured",
+                        "Amount": 2.00,
+                        "CapturedAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "CancelPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>test@test.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#email",
+                            "action": "type",
+                            "value": "carmen.dorin@smart2pay.com"
+                        },
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "1,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_PAYIN</Action><MID>$MID</MID><PaymentMethod /><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>100</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [paypal2Payments].[PaymentID] as ID ,[paypal2Payments].[GPaymentID] as TransactionID ,[paypal2Payments].[MerchantID] as MerchantID , [paypal2Payments].[MerchantTID] as MerchantTID ,[paypal2Payments].[Amount] as Amount ,[paypal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[paypal2Payments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[paypal2Payments] with (NOLOCK), [PaymentStateDefs] where [paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and paypal2Payments.GPaymentID =@TRXID and  [paypal2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Cancelled",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>carmen.dorin@smart2pay.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "2,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Description>Partial Refund</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [Paypal2Payments].[PaymentID] as ID, [Paypal2Payments].[GPaymentID] as TransactionID, [Paypal2Payments].[ActionTypeID] as ActionTypeID, [Paypal2Payments].[MerchantID] as MerchantID, [Paypal2Payments].[MerchantTID] as MerchantTID, [Paypal2Payments].[Amount] as Amount, [Paypal2Payments].[AvailableAmount] as AvailableAmount, [Paypal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [Paypal2Payments].[ProviderErrorCode] as ProviderErrorCode  FROM [Europay].[dbo].[Paypal2Payments], [PaymentStateDefs] where [Paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [Paypal2Payments].GPaymentID = @TRXID and [Paypal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "ActionTypeID": 2
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "select AvailableAmount, ActionTypeID from Paypal2Payments where GPaymentID= (select InitialTransactionID from Paypal2Payments where GPaymentID=@TRXID and MerchantID=@MID)",
+                    "expect": {
+                        "AvailableAmount": 1.00,
+                        "ActionTypeID": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "TotalRefund",
+                "tags": [],
+                "description": "",
+                "environment": "qa"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>TEST_OK</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>carmen.dorin@smart2pay.com</Email><CountryCode>US</CountryCode><State>NY</State><City>New York</City><Address>Saint Louis</Address><ZipCode>700067</ZipCode></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "button.css-ltr-1m7plzc-button-Button",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "input#password",
+                            "action": "type",
+                            "value": "1Qaz2Wsx"
+                        },
+                        {
+                            "path": "button#btnLogin",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Provider page 3",
+                    "url": "www.sandbox.paypal.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(@class,'Amount_multiLine_VDWH_')]",
+                            "should": ["contain", "2,00"]
+                        },
+                        {
+                            "path": "span[data-testid=c3-fi-details-name]",
+                            "should": ["contain", "PayPal Balance"]
+                        },
+                        {
+                            "path": "button#payment-submit-btn",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [PayPal2Payments].[PaymentID] as ID ,[PayPal2Payments].[GPaymentID] as TransactionID ,  [PayPal2Payments].[MerchantID] as MerchantID , [PayPal2Payments].[MerchantTID] as MerchantTID , [PayPal2Payments].[Amount] as Amount ,[PayPal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [PayPal2Payments].[Description] as Description     FROM [Europay].[dbo].[PayPal2Payments],  [PaymentStateDefs] where [PayPal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [PayPal2Payments].GPaymentID = @TRXID and [PayPal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Description>Total Refund</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [Paypal2Payments].[PaymentID] as ID, [Paypal2Payments].[GPaymentID] as TransactionID, [Paypal2Payments].[ActionTypeID] as ActionTypeID, [Paypal2Payments].[MerchantID] as MerchantID, [Paypal2Payments].[MerchantTID] as MerchantTID, [Paypal2Payments].[Amount] as Amount, [Paypal2Payments].[AvailableAmount] as AvailableAmount, [Paypal2Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [Paypal2Payments].[ProviderErrorCode] as ProviderErrorCode  FROM [Europay].[dbo].[Paypal2Payments], [PaymentStateDefs] where [Paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [Paypal2Payments].GPaymentID = @TRXID and [Paypal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "ActionTypeID": 2
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "select AvailableAmount, ActionTypeID from Paypal2Payments where GPaymentID= (select InitialTransactionID from Paypal2Payments where GPaymentID=@TRXID and MerchantID=@MID)",
+                    "expect": {
+                        "AvailableAmount": 0.00,
+                        "ActionTypeID": 1
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip":true,
+                "knownIssue": "bad request - Task 582390."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><ReturnURL>http://www.smart2pay.com/success.html</ReturnURL><Description>Preapproval Description</Description><Customer><Email>jdoe@test.com</Email></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "ReturnURL"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/PayPal2/Preapproval/Landing.aspx?id="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 4,
+                        "PaymentTypeID": 94
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>VS EP Automated Test Payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 5000,
+                    "query": "SELECT [Paypal2Payments].[PaymentID] as ID ,[Paypal2Payments].[GPaymentID] as TransactionID ,  [Paypal2Payments].[MerchantID] as MerchantID , [Paypal2Payments].[MerchantTID] as MerchantTID , [Paypal2Payments].[Amount] as Amount ,[Paypal2Payments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [Paypal2Payments].[Description] as Description  , [Paypal2Payments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[Paypal2Payments], [PaymentStateDefs] where [Paypal2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [Paypal2Payments].GPaymentID = @TRXID and [Paypal2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Failed",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "ClosePreapproval",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip":true,
+                "knownIssue": "bad request - Task 582390."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><ReturnURL>http://www.smart2pay.com/success.html</ReturnURL><Description>Preapproval Description</Description><Customer><Email>jdoe@test.com</Email></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "ReturnURL"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/PayPal2/Preapproval/Landing.aspx?id="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 4,
+                        "PaymentTypeID": 94
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CLOSE_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paypal2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><PreapprovalID>$PREAPPROVALID</PreapprovalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "4"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT PR.MerchantID, PR.PaymentTypeID AS MethodID, PR.PreapprovalStateDefID, PSD.Name AS Status FROM PreapprovalRequests AS PR LEFT OUTER JOIN PreapprovalStateDefs AS PSD ON PR.PreapprovalStateDefID = PSD.ID WHERE PR.ID = @PREAPPROVALID",
+                    "expect": {
+                        "Status": "ClosedByCustomer",
+                        "MethodID": 94
+                    }
+                }
+            ]
+        }
+ 
+    ]
+}

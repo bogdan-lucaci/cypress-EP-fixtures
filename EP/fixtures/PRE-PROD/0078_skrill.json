@@ -1,0 +1,160 @@
+{
+    "method": {
+        "ID": 78,
+        "name": "skrill",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>skrill</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1</Amount><Currency>EUR</Currency><Description>VS EP Automated test payment</Description><Language>en-US</Language><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CustomerName FirstName=\"Mada\" LastName=\"TEST\" /><CustomerEmail>skrill_user_test2@smart2pay.com</CustomerEmail><CustomerAddress><Street>ostrada</Street><ZipCode>123456789</ZipCode><City>Iasi</City><State>Iasi</State><Country>RO</Country></CustomerAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Cookie Page",
+                    "url": "pay.skrill.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='onetrust-accept-btn-handler']",
+                            "isOptional": true,
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.skrill.com",
+                    "elements": [
+                        {
+                            "path": "#ps-input-0"
+                        },
+                        {
+                            "path": "#ps-input-1"
+                        },
+                        {
+                            "path": "//span[contains(text(),' Log in with one-time code ')]"
+                        },
+                        {
+                            "path": "//a[contains(text(),'Forgot your password?')]"
+                        },
+                        {
+                            "path": "button[type=submit]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [SkrillPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[SkrillPayments] with (NOLOCK), [PaymentStateDefs] where [SkrillPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and SkrillPayments.GPaymentID = @TRXID and [SkrillPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.01
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayinRecurring",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>12345</MSID><PaymentMethod>skrill</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1</Amount><Currency>EUR</Currency><Description>VS EP Automated Test Payment</Description><Language>en-US</Language><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CustomerName FirstName=\"Test\" LastName=\"ME\"/><CustomerEmail>skrill_user_test2@smart2pay.com</CustomerEmail><RecurringDetails><MaximumAmount>5</MaximumAmount><Description>VS EP Automated Test Recurring payment</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "MaximumAmount"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Cookie Page",
+                    "url": "pay.skrill.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='onetrust-accept-btn-handler']",
+                            "isOptional": true,
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.skrill.com",
+                    "elements": [
+                        {
+                            "path": "#ps-input-0"
+                        },
+                        {
+                            "path": "#ps-input-1"
+                        },
+                        {
+                            "path": "//span[contains(text(),' Log in with one-time code ')]"
+                        },
+                        {
+                            "path": "//a[contains(text(),'Forgot your password?')]"
+                        },
+                        {
+                            "path": "button[type=submit]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [SkrillPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[SkrillPayments] with (NOLOCK), [PaymentStateDefs] where [SkrillPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and SkrillPayments.GPaymentID = @TRXID and [SkrillPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.01
+                    }
+                }
+            ]
+        }
+    ]
+}

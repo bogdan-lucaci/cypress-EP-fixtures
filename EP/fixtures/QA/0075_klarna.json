@@ -1,0 +1,1064 @@
+{
+    "method": {
+        "ID": 75,
+        "name": "Klarna",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": "experimentalModifyObstructiveThirdPartyCode: true setting breaks tests."
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_Payments_USD",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>1</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Quantity",
+                        "ID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":2000,
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $6.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $6 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "isOptional":true,
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 6
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "CapturePayin_Payments_USD",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue":""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>333</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "ID",
+                        "Quantity"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 2000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $6.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $6 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "isOptional":true,
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>600</Amount><Currency>USD</Currency><Articles><Article><ID>333</ID><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency",
+                        "ID",
+                        "Quantity"
+                        
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71",
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount , [KlarnaPayments].[CapturedAmount] as CapturedAmount , [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 6.00,
+                        "CapturedAmount":6.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Partial_CapturePayin_Payments_USD",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue":"Wrong HASH calculation bug - https://dev.azure.com/nuvei/DigitalPayments/_workitems/edit/586516"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>800</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>1</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article><Article><ID>67890</ID><Name>sales tax</Name><Quantity>1</Quantity><Price>200</Price><Type>7</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "ID",
+                        "Quantity",
+                        "ID",
+                        "Quantity"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "800"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 2000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $8.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $8 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "isOptional":true,
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 8
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>300</Amount><Currency>USD</Currency><Articles><Article><ID>1</ID><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency",
+                        "Quantity",
+                        "ID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "77",
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount , [KlarnaPayments].[CapturedAmount] as CapturedAmount , [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "PartiallyCaptured",
+                        "Amount": 8.00,
+                        "CapturedAmount":6.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundWithArticles_Payments_USD",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>1</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Quantity",
+                        "ID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 2000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $6.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $6 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "isOptional":true,
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "delay":1000,
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>600</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"                      
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>300</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Articles><Article><ID>1</ID><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency",
+                        "ID",
+                        "Quantity"                       
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "300"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from KlarnaPayments t1 join KlarnaPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 6.00,
+                        "RefundAmount": 3.00,
+                        "RefundStatus": "Success",
+                        "PaymentAvailableAmount": 3.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "TotalRefundWithoutArticles_Payments_USD",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>1</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Quantity",
+                        "ID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 2000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $6.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $6 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "isOptional":true,
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>600</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"                      
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from KlarnaPayments t1 join KlarnaPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 6.00,
+                        "RefundAmount": 6.00,
+                        "RefundStatus": "Success",
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "TotalRefundWithArticles_Payments_USD",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><Description>VS EP Automated Test Payment</Description><Payments><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/success.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Country>US</Country><CustomerFirstName>Carolyn F</CustomerFirstName><CustomerLastName>Fortenberry</CustomerLastName><CustomerPhone>863-869-1164</CustomerPhone><CustomerEmail>youremail@email.com</CustomerEmail><CustomerShippingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerShippingAddress><CustomerBillingAddress>Baker Avenue;3851 ;76104;Fort Worth;US;;;;FL</CustomerBillingAddress></Payments><Articles><Article><ID>1</ID><Name>TestArticle</Name><Quantity>1</Quantity><Price>600</Price><Type>5</Type></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Quantity",
+                        "ID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 2000,
+                    "description": "VerificationPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@value='(863) 869-1164']"
+                        },
+                        {
+                            "path": "//*[@id='onContinue__text']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Code1ClickPage",
+                    "url": "playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[@data-testid='otp-field']",
+                            "value": 123456,
+                            "action": "type"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//*[text()='How do you want to pay $6.00?']"
+                        },
+                        {
+                            "path": "//input[@value='pay_now']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='select-payment-category']",
+                            "action": "click"
+                        }
+
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 1",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "elements": [
+                        {
+                            "path": "//h2[text()='Carolyn F']"
+                        },
+                        {
+                            "path": "//*[.='Pay $6 today with']"
+                        },
+                        {
+                            "path": "//*[@data-testid='confirm-and-pay']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider Page 2",
+                    "url": "pay.playground.klarna.com",
+                    "iframes": ["#klarna-apf-iframe"],
+                    "isOptional":true,
+                    "elements": [
+                        {
+                            
+                            "path": "//*[@data-testid='SmoothCheckoutPopUp:skip']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>600</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"                      
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [KlarnaPayments].[PaymentID] as ID ,[KlarnaPayments].[GPaymentID] as TransactionID ,  [KlarnaPayments].[MerchantID] as MerchantID ,[KlarnaPayments].[MerchantTID] as MerchantTID , [KlarnaPayments].[Amount] as Amount ,  [KlarnaPayments].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status , [KlarnaPayments].[Description] as Description   FROM [Europay].[dbo].[KlarnaPayments], [PaymentStateDefs]   where [KlarnaPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [KlarnaPayments].GPaymentID = @TRXID and [KlarnaPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 6
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>klarna</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>600</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Articles><Article><ID>1</ID><Quantity>1</Quantity></Article></Articles></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency",
+                        "ID",
+                        "Quantity"                       
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "600"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT t2.ActionTypeID, t1.Amount as PaymentAmount, t2.Amount as RefundAmount, PaymentStateDefs.Name as RefundStatus, t1.AvailableAmount as PaymentAvailableAmount from KlarnaPayments t1 join KlarnaPayments t2 on t1.GPaymentID = t2.InitialTransactionID join PaymentStateDefs on t2.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID where t2.GPaymentID = @TRXID and t2.MerchantID = @MID",
+                    "expect": {
+                        "ActionTypeID": 2,
+                        "PaymentAmount": 6.00,
+                        "RefundAmount": 6.00,
+                        "RefundStatus": "Success",
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        }
+    ]
+}
+        

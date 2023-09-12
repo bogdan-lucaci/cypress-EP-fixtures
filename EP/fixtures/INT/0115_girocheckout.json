@@ -1,0 +1,427 @@
+{
+    "method": {
+        "ID": 115,
+        "name": "GiroCheckout",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_EPS",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "TASK 601967 - EPS -error on routing"
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>GiroCheckout</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>EPS Simple Payment</Description><PayOptionID>2</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "ftg-customer-integration.giropay.de",
+                    "elements": [
+                        {
+                            "path": "//*[@id='gp_logo2']"
+                        },
+                        {
+                            "path": "//*[@id='backUrl']"
+                        },
+                        {
+                            "path": "//*[@id='tags']",
+                            "value": "HYPTAT22XXX",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//a[contains(text(),'HYPTAT22XXX')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@name='continueBtn']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "(//button[@id='yes'])[1]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "ftg-customer-integration.giropay.de",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnLogin']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnSign']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnSignSingle']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='mobileTan']",
+                            "value": "12345",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@name='sbtnOk']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@value='zurück']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [GiroCheckoutPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[GiroCheckoutPayments], [PaymentStateDefs] where [GiroCheckoutPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [GiroCheckoutPayments].GPaymentID=@TRXID and [GiroCheckoutPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_EPS_WithCustomerDetails",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "TASK 601967 - EPS -error on routing"                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>GiroCheckout</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>EPS Simple Payment</Description><CustomerFirstName>John</CustomerFirstName><CustomerLastName>Doe</CustomerLastName><CustomerEmail>john.doe@test.com</CustomerEmail><PayOptionID>2</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "ftg-customer-integration.giropay.de",
+                    "elements": [
+                        {
+                            "path": "//*[@id='gp_logo2']"
+                        },
+                        {
+                            "path": "//*[@id='backUrl']"
+                        },
+                        {
+                            "path": "//*[@id='tags']",
+                            "value": "HYPTAT22XXX",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//a[contains(text(),'HYPTAT22XXX')]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@name='continueBtn']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "(//button[@id='yes'])[1]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "ftg-customer-integration.giropay.de",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnLogin']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnSign']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='sbtnSignSingle']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@id='mobileTan']",
+                            "value": "12345",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@name='sbtnOk']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 6",
+                    "url": "www.banking.co.at",
+                    "elements": [
+                        {
+                            "path": "//*[@value='zurück']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [GiroCheckoutPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[GiroCheckoutPayments], [PaymentStateDefs] where [GiroCheckoutPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [GiroCheckoutPayments].GPaymentID=@TRXID and [GiroCheckoutPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Giropay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>F520156B-5E64-447F-B0B2-C638FA101C6F</MID><MSID>1000</MSID><PaymentMethod>GiroCheckout</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>ED5724D1FF01D895F6E2A3BB34D0DCE3</Hash><Details><MTID>638163815513234174</MTID><Amount>200</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>GiroCheckout Simple Payment</Description><CustomerFirstName>John</CustomerFirstName><CustomerLastName>Doe</CustomerLastName><CustomerEmail>john.doe@test.com</CustomerEmail><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.paydirekt.de",
+                    "elements": [
+                        {
+                            "path": "//button[.='Alle Cookies akzeptieren']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='giropay-logo']"
+                        },
+                        {
+                            "path": "//span[contains(text(),'2,00')]"
+                        },
+                        {
+                            "path": "//*[@id='bankSearch']"
+                        },
+                        {
+                            "path": "//*[@name='backLink']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [GiroCheckoutPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[GiroCheckoutPayments], [PaymentStateDefs] where [GiroCheckoutPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [GiroCheckoutPayments].GPaymentID=@TRXID and [GiroCheckoutPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 2.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_GiropayExtraFields",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>F520156B-5E64-447F-B0B2-C638FA101C6F</MID><MSID>1000</MSID><PaymentMethod>GiroCheckout</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>6573776E7A7867721C3364574487D0F4</Hash><Details><MTID>638163827340105246</MTID><Amount>100</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><Description>GiroCheckout Payment</Description><CustomerFirstName>John</CustomerFirstName><CustomerLastName>Doe</CustomerLastName><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerShoppingCartType>Digital</CustomerShoppingCartType><CustomerAddress><City>Berlin</City><CountryCode>DE</CountryCode><ZipCode>123456</ZipCode></CustomerAddress><PayOptionID>1</PayOptionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.paydirekt.de",
+                    "elements": [
+                        {
+                            "path": "//button[.='Alle Cookies akzeptieren']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@data-testid='giropay-logo']"
+                        },
+                        {
+                            "path": "//span[contains(text(),'1,00')]"
+                        },
+                        {
+                            "path": "//*[@id='bankSearch']"
+                        },
+                        {
+                            "path": "//*[@name='backLink']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [GiroCheckoutPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[GiroCheckoutPayments], [PaymentStateDefs] where [GiroCheckoutPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [GiroCheckoutPayments].GPaymentID=@TRXID and [GiroCheckoutPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

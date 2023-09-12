@@ -1,0 +1,270 @@
+{
+    "method": {
+        "ID": 40,
+        "name": "Paysafecard",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>paysafecard</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Language>en-US</Language><Description>VS Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "customer.test.at.paysafecard.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='onetrust-accept-btn-handler']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "customer.test.at.paysafecard.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='classicPin-addPinField']",
+                            "value": "0000 0000 0990 0829",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='acceptTerms']",
+                            "action": "check"
+                        },
+                        {
+                            "path": "//*[@id='payBtn']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT PaysafecardPayments.PaymentID AS ID, SystemPayments.GPaymentID AS TransactionID, SystemPayments.MerchantID, PaysafecardPayments.MerchantTID, PaysafecardPayments.Amount, PaysafecardPayments.Currency, PaymentStateDefs.Name AS Status, PaysafecardPayments.Description  FROM PaysafecardPayments LEFT OUTER JOIN SystemPayments ON PaysafecardPayments.PaymentID = SystemPayments.PaymentID LEFT OUTER JOIN PaymentStateDefs ON PaysafecardPayments.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID WHERE (SystemPayments.PaymentTypeID = 40) AND (SystemPayments.GPaymentID = @TRXID) AND (SystemPayments.MerchantID = @MID)",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 0.01
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Capture",
+                "tags": [],
+                "description": "Refund - la fel - ar trebui folosit",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>paysafecard</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Language>en-US</Language><Description>VS Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "customer.test.at.paysafecard.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='classicPin-addPinField']",
+                            "value": "0000 0000 0990 0829",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='acceptTerms']",
+                            "action": "check"
+                        },
+                        {
+                            "path": "//*[@id='payBtn']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT PaysafecardPayments.PaymentID AS ID, SystemPayments.GPaymentID AS TransactionID, SystemPayments.MerchantID, PaysafecardPayments.MerchantTID, PaysafecardPayments.Amount, PaysafecardPayments.Currency, PaymentStateDefs.Name AS Status, PaysafecardPayments.Description  FROM PaysafecardPayments LEFT OUTER JOIN SystemPayments ON PaysafecardPayments.PaymentID = SystemPayments.PaymentID LEFT OUTER JOIN PaymentStateDefs ON PaysafecardPayments.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID WHERE (SystemPayments.PaymentTypeID = 40) AND (SystemPayments.GPaymentID = @TRXID) AND (SystemPayments.MerchantID = @MID)",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 0.01
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>1</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71",
+                        "Amount": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Cancel",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>paysafecard</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLS/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLS/processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "customer.test.at.paysafecard.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='classicPin-addPinField']",
+                            "value": "0000 0000 0990 0829",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//*[@id='acceptTerms']",
+                            "action": "check"
+                        },
+                        {
+                            "path": "//*[@id='payBtn']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT PaysafecardPayments.PaymentID AS ID, SystemPayments.GPaymentID AS TransactionID, SystemPayments.MerchantID, PaysafecardPayments.MerchantTID, PaysafecardPayments.Amount, PaysafecardPayments.Currency, PaymentStateDefs.Name AS Status, PaysafecardPayments.Description  FROM PaysafecardPayments LEFT OUTER JOIN SystemPayments ON PaysafecardPayments.PaymentID = SystemPayments.PaymentID LEFT OUTER JOIN PaymentStateDefs ON PaysafecardPayments.PaymentStateDefID = PaymentStateDefs.PaymentStateDefID WHERE (SystemPayments.PaymentTypeID = 40) AND (SystemPayments.GPaymentID = @TRXID) AND (SystemPayments.MerchantID = @MID)",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 0.01
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_PAYIN</Action><MID>$MID</MID><PaymentMethod /><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>1</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31"
+                    }
+                }
+            ]
+        }
+    ]
+}

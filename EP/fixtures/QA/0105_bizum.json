@@ -1,0 +1,274 @@
+{
+    "method": {
+        "ID": 105,
+        "name": "Bizum",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>payment EP</Description><CustomerName>Dutzu Test</CustomerName><CustomerEmail>dutzu@test.com</CustomerEmail><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "ppii-i.redsys.es",
+                    "elements": [
+                        {
+                            "path": "//input[@id='iPhBizInit']",
+                            "value": "700000000",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='bBizInit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [BizumPayments].[ID] as ID, [BizumPayments].[GPaymentID] as TransactionID, [BizumPayments].[MerchantID] as MerchantID, [BizumPayments].[MerchantTID] as MerchantTID, [BizumPayments].[Amount] as Amount, [BizumPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [BizumPayments].[Description] as Description  FROM [Europay].[dbo].[BizumPayments], [PaymentStateDefs] where [BizumPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [BizumPayments].GPaymentID=@TRXID and [BizumPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": ["@refund"],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>payment EP</Description><CustomerName>Dutzu Test</CustomerName><CustomerEmail>dutzu@test.com</CustomerEmail><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "ppii-i.redsys.es",
+                    "elements": [
+                        {
+                            "path": "//input[@id='iPhBizInit']",
+                            "value": "700000000",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='bBizInit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [BizumPayments].[ID] as ID, [BizumPayments].[GPaymentID] as TransactionID, [BizumPayments].[MerchantID] as MerchantID, [BizumPayments].[MerchantTID] as MerchantTID, [BizumPayments].[Amount] as Amount, [BizumPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [BizumPayments].[Description] as Description  FROM [Europay].[dbo].[BizumPayments], [PaymentStateDefs] where [BizumPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [BizumPayments].GPaymentID=@TRXID and [BizumPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT BR.Amount AS RefundAmount, BP.Amount AS PaymentAmount, BP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM BizumPayments AS BP CROSS JOIN PaymentStateDefs INNER JOIN BizumRefunds AS BR ON BP.GPaymentID = BR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = BR.PaymentStateDefID WHERE BR.MerchantID = @MID AND BR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 1.00,
+                        "PaymentAmount": 1.00,
+                        "PaymentAvailableAmount": 0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": ["@sanity", "@refund"],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>payment EP</Description><CustomerName>Dutzu Test</CustomerName><CustomerEmail>dutzu@test.com</CustomerEmail><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "ppii-i.redsys.es",
+                    "elements": [
+                        {
+                            "path": "//input[@id='iPhBizInit']",
+                            "value": "700000000",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='bBizInit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT [BizumPayments].[ID] as ID, [BizumPayments].[GPaymentID] as TransactionID, [BizumPayments].[MerchantID] as MerchantID, [BizumPayments].[MerchantTID] as MerchantTID, [BizumPayments].[Amount] as Amount, [BizumPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [BizumPayments].[Description] as Description  FROM [Europay].[dbo].[BizumPayments], [PaymentStateDefs] where [BizumPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [BizumPayments].GPaymentID=@TRXID and [BizumPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>50</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "50"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT BR.Amount AS RefundAmount, BP.Amount AS PaymentAmount, BP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM BizumPayments AS BP CROSS JOIN PaymentStateDefs INNER JOIN BizumRefunds AS BR ON BP.GPaymentID = BR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = BR.PaymentStateDefID WHERE BR.MerchantID = @MID AND BR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 0.50,
+                        "PaymentAmount": 1.00,
+                        "PaymentAvailableAmount": 0.5
+                    }
+                }
+            ]
+        }
+    ]
+}

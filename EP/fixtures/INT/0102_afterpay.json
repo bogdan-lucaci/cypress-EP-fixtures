@@ -1,0 +1,705 @@
+{
+    "method": {
+        "ID": 102,
+        "name": "AfterPay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_Auhtorized_USD",
+                "tags": ["@smoke "],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><Action>INSERT_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>Afterpay Automation Testing</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0123</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\" /><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\" /></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\" /></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[Description] as Description    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_AutomaticCapture_USD",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1261</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>Afterpay Automation Testing</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0123</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\" /><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\" /></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\" /></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[Description] as Description    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "FullCapture_Afterpay_USD",
+                "tags": [
+                    "@capture"
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><Action>INSERT_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>Afterpay Automation Testing</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0123</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\" /><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\" /></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\" /></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00, 
+                        "CapturedAmount": null
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>100</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71",
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "CapturedAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialCapture_Afterpay_USD",
+                "tags": [
+                    "@capture"
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><Action>INSERT_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>Afterpay Automation Testing</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0123</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\" /><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\" /></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\" /></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00,
+                        "CapturedAmount": null
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>50</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "77"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "PartiallyCaptured",
+                        "Amount": 1.00,
+                        "CapturedAmount": 0.50
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Cancel_Afterpay_USD",
+                "tags": [
+                    "@cancel"
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><Action>INSERT_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>Afterpay Automation Testing</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0123</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\" /><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\" /></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\" /></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[Description] as Description    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_PAYIN</Action><MID>$MID</MID> <MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>100</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[Description] as Description    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Cancelled",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund_AfterPay_USD",
+                "tags": ["@sanity",
+                    "@refund",
+                    "@capture"
+                ],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>USD</Currency><Description>Laur</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><Customer><FirstName>Test</FirstName><LastName>User</LastName><Email>nuvei_buyer@maildrop.cc</Email><PhoneNumber>(202) 725-0128</PhoneNumber></Customer><BillingAddress><Street>123 Fake Street</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></BillingAddress><ShippingAddress><Street>3655 Lawton St</Street><City>San Francisco</City><Region>CA</Region><ZipCode>94122</ZipCode><CountryCode>US</CountryCode></ShippingAddress><Articles><Article Name=\"Blue Carabiner\" Quantity=\"1\" Amount=\"20\"/><Article Name=\"Led Lantern\" Quantity=\"2\" Amount=\"50\"/></Articles><Discounts><Discount Name=\"10% off\" Amount=\"10\"/></Discounts><TaxAmount>1000</TaxAmount><ShippingAmount>2000</ShippingAmount></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@data-testid='login-password-input']",
+                            "value": "Webmaster501#",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@data-testid = 'login-password-button']//*[text() = 'Continue']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "portal.sandbox.afterpay.com",
+                    "elements": [
+                        {
+                            "path": "//span[text()='Nuvei summary']"
+                        },
+                        {
+                            "path": "//span[text()='Payment Method']"
+                        },
+                        {
+                            "path": "//div[text()='Payment schedule']"
+                        },
+                        {
+                            "path": "//*[@data-testid='summary-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 5000,
+                    "description": "Provider page 3",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[Description] as Description    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Authorized",
+                        "Amount": 10.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "delay": 1000,
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CAPTURE_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>1000</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "71"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [AfterpayPayments].[ID] as ID ,[AfterpayPayments].[GPaymentID] as TransactionID ,[AfterpayPayments].[MerchantID] as MerchantID , [AfterpayPayments].[MerchantTID] as MerchantTID ,[AfterpayPayments].[Amount] as Amount ,[AfterpayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayPayments].[CapturedAmount] as CapturedAmount    FROM [Europay].[dbo].[AfterpayPayments] with (NOLOCK), [PaymentStateDefs] where [AfterpayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and AfterpayPayments.GPaymentID =@TRXID and  [AfterpayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 10.00,
+                        "CapturedAmount": 10.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>afterpay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>500</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "InitialTransactionID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "500"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3500,
+                    "query": "SELECT [AfterpayRefunds].[ID] as ID ,[AfterpayRefunds].[GPaymentID] as TransactionID ,[AfterpayRefunds].[MerchantID] as MerchantID , [AfterpayRefunds].[MerchantTID] as MerchantTID ,[AfterpayRefunds].[Amount] as Amount ,[AfterpayRefunds].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[AfterpayRefunds].[Description] as Description    FROM [Europay].[dbo].[AfterpayRefunds] with (NOLOCK), [PaymentStateDefs] where [AfterpayRefunds].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and [AfterpayRefunds].[GPaymentID] =@TRXID and  [AfterpayRefunds].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 5.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT AR.ID AS RefundID, AR.GPaymentID AS RefundPaymentID, AR.MerchantID AS RefundMerchantID, AR.Amount AS RefundAmount, AP.Amount as PaymentAmount, AP.AvailableAmount as PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM AfterpayPayments AS AP CROSS JOIN PaymentStateDefs INNER JOIN AfterpayRefunds AS AR ON AP.GPaymentID = AR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = AR.PaymentStateDefID WHERE AR.GPaymentID= @TRXID AND AR.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "PaymentAmount": 10.00,
+                        "PaymentAvailableAmount": 5.00
+                    }
+                }
+            ]
+        }
+    ]
+}

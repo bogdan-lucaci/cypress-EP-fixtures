@@ -1,0 +1,85 @@
+{
+    "method": {
+        "ID": 3,
+        "name": "Mr Cash",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><InitiatePaymentRequest xmlns=\"http://europay.smart2pay.com/message\" version=\"1.0\"><MID>$MID</MID><PaymentMethod>mrcash</PaymentMethod><Details><Payment><Amount>2100</Amount><Currency>EUR</Currency><MTID>$MTID</MTID><Language>en_EN</Language><Description>VS Automated Test Payment</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLS/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLS/failure.html</FailureURL><CustomerName>Mada Rulz</CustomerName></Payment></Details></InitiatePaymentRequest>",
+                    "hashElements": [],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "2100"
+                    },
+                    "saveFromResponse": [
+                        "MID",
+                        {
+                            "key": "TrxID",
+                            "alias": "TransactionID"
+                        }
+                    ]
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "ogone.test.v-psp.com",
+                    "elements": [
+                        {
+                            "path": "//img[@title='QR Code']"
+                        },
+                        {
+                            "path": "//*[@id='Ecom_Payment_Card_Name']"
+                        },
+                        {
+                            "path": "//*[@id='Ecom_Payment_Card_Number']"
+                        },
+                        {
+                            "path": "//*[@id='Ecom_Payment_Card_ExpDate_Month']"
+                        },
+                        {
+                            "path": "//*[@id='Ecom_Payment_Card_ExpDate_Year']"
+                        },
+                        {
+                            "path": "//*[@id='btn_sendCardData']"
+                        },
+                        {
+                            "path": "//*[.='Order reference ']"
+                        },
+                        {
+                            "path": "//*[.='Total charge ']"
+                        },
+                        {
+                            "path": "//*[.='Beneficiary ']"
+                        }
+                    ]
+                }, 
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MRCashPayments].[MRPaymentID] as ID ,[MRCashPayments].[GPaymentID] as TransactionID , [MRCashPayments].[MerchantID] as MerchantID ,[MRCashPayments].[MerchantTID] as MerchantTID , [MRCashPayments].[Amount] as Amount ,[MRCashPayments].[Currency] as Currency ,[MRCashStatus].[Status] as Status , [MRCashPayments].[Description] as Description   FROM [Europay].[dbo].[MRCashPayments], [MRCashStatus] where [MRCashPayments].MRCashStatusID = MRCashStatus.MRCashStatusID and [MRCashPayments].GPaymentID='{{{TransactionID}}}' and [MRCashPayments].[MerchantID]='{{{MID}}}'",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 21.00
+                    }
+                }
+            ]
+        }
+    ]
+}

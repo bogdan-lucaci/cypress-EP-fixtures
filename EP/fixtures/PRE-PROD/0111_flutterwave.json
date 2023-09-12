@@ -1,0 +1,654 @@
+{
+    "method": {
+        "ID": 111,
+        "name": "Flutterwave",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+       
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>NGN</Currency><Description>Flutterwave payment</Description><CustomerName>Automation TEST</CustomerName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>12345678910</CustomerPhone><CountryCode>NG</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":5000,
+                    "description": "Provider page 1",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        { 
+                            "path": "//input[@id='expiry']",
+                            "action":"type",
+                            "value":"0932"                            
+                        },
+                        {
+                            "path": "//input[@id='cvv']",
+                            "action":"type",
+                            "value":"564"                            
+                        },
+                        {
+                            "path": "//input[@id='cardnumber']",
+                            "action":"type",
+                            "value":"5531886652142950"                            
+                        },
+                        {
+                            "delay":3000,
+                            "path": "//button[@class='btn base' and contains(text(),'Pay')]",
+                            "action":"click"                         
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input1']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input2']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input3']",
+                            "action":"type",
+                            "value":"1"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input4']",
+                            "action":"type",
+                            "value":"0"                            
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 3",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='otp']",
+                            "action": "type",
+                            "value":123456
+                        },
+                        {
+                            "path": "//button[@aria-label='Confirm OTP']",
+                            "action":"click"                            
+                        }
+                    ]
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "smart2pay.com",
+                    "elements": []
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 60000,
+                    "query": "SELECT [FlutterwavePayments].[ID] as ID ,[FlutterwavePayments].[GPaymentID] as TransactionID ,  [FlutterwavePayments].[MerchantID] as MerchantID , [FlutterwavePayments].[MerchantTID] as MerchantTID , [FlutterwavePayments].[Amount] as Amount ,[FlutterwavePayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [FlutterwavePayments].[Description] as Description     FROM [Europay].[dbo].[FlutterwavePayments],  [PaymentStateDefs] where [FlutterwavePayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayments].GPaymentID = @TRXID and [FlutterwavePayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1000.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>NGN</Currency><Description>Flutterwave payment</Description><CustomerName>Automation TEST</CustomerName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>12345678910</CustomerPhone><CountryCode>NG</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":5000,
+                    "description": "Provider page 1",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        { 
+                            "path": "//input[@id='expiry']",
+                            "action":"type",
+                            "value":"0932"                            
+                        },
+                        {
+                            "path": "//input[@id='cvv']",
+                            "action":"type",
+                            "value":"564"                            
+                        },
+                        {
+                            "path": "//input[@id='cardnumber']",
+                            "action":"type",
+                            "value":"5531886652142950"                            
+                        },
+                        {
+                            "delay":3000,
+                            "path": "//button[@class='btn base' and contains(text(),'Pay')]",
+                            "action":"click"                         
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input1']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input2']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input3']",
+                            "action":"type",
+                            "value":"1"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input4']",
+                            "action":"type",
+                            "value":"0"                            
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 3",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'1,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='otp']",
+                            "action": "type",
+                            "value":123456
+                        },
+                        {
+                            "path": "//button[@aria-label='Confirm OTP']",
+                            "action":"click"                            
+                        }
+                    ]
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "smart2pay.com",
+                    "elements": []
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 60000,
+                    "query": "SELECT [FlutterwavePayments].[ID] as ID ,[FlutterwavePayments].[GPaymentID] as TransactionID ,  [FlutterwavePayments].[MerchantID] as MerchantID , [FlutterwavePayments].[MerchantTID] as MerchantTID , [FlutterwavePayments].[Amount] as Amount ,[FlutterwavePayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [FlutterwavePayments].[Description] as Description     FROM [Europay].[dbo].[FlutterwavePayments],  [PaymentStateDefs] where [FlutterwavePayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayments].GPaymentID = @TRXID and [FlutterwavePayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1000.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>82.208.151.136</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>NGN</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 30000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM FlutterwavePayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN FlutterwaveRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.GpaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 1000.00,
+                        "PaymentAmount": 1000.00,
+                        "PaymentAvailableAmount": 1000.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200000</Amount><Currency>NGN</Currency><Description>Flutterwave payment</Description><CustomerName>Automation TEST</CustomerName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>12345678910</CustomerPhone><CountryCode>NG</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":5000,
+                    "description": "Provider page 1",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'2,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        { 
+                            "path": "//input[@id='expiry']",
+                            "action":"type",
+                            "value":"0932"                            
+                        },
+                        {
+                            "path": "//input[@id='cvv']",
+                            "action":"type",
+                            "value":"564"                            
+                        },
+                        {
+                            "path": "//input[@id='cardnumber']",
+                            "action":"type",
+                            "value":"5531886652142950"                            
+                        },
+                        {
+                            "delay":3000,
+                            "path": "//button[@class='btn base' and contains(text(),'Pay')]",
+                            "action":"click"                         
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'2,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input1']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input2']",
+                            "action":"type",
+                            "value":"3"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input3']",
+                            "action":"type",
+                            "value":"1"                            
+                        },
+                        {
+                            "path": "//input[@id='pin-input4']",
+                            "action":"type",
+                            "value":"0"                            
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay":1000,
+                    "description": "Provider page 3",
+                    "url": "ravemodal-dev.herokuapp.com",
+                    "iframes": ["[name^='checkout']"],
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'NGN')]"                            
+                        },
+                        {
+                            "path": "//p[contains(text(),'2,000')]"                            
+                        },
+                        {
+                            "path": "//p[@class='customer__details-email' and contains(text(),'user@test.com')]"                            
+                        },
+                        {
+                            "path": "//input[@id='otp']",
+                            "action": "type",
+                            "value":123456
+                        },
+                        {
+                            "path": "//button[@aria-label='Confirm OTP']",
+                            "action":"click"                            
+                        }
+                    ]
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 4",
+                    "url": "smart2pay.com",
+                    "elements": []
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 60000,
+                    "query": "SELECT [FlutterwavePayments].[ID] as ID ,[FlutterwavePayments].[GPaymentID] as TransactionID ,  [FlutterwavePayments].[MerchantID] as MerchantID , [FlutterwavePayments].[MerchantTID] as MerchantTID , [FlutterwavePayments].[Amount] as Amount ,[FlutterwavePayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [FlutterwavePayments].[Description] as Description     FROM [Europay].[dbo].[FlutterwavePayments],  [PaymentStateDefs] where [FlutterwavePayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayments].GPaymentID = @TRXID and [FlutterwavePayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2000.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>82.208.151.136</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100000</Amount><Currency>NGN</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 30000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM FlutterwavePayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN FlutterwaveRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.GpaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 1000.00,
+                        "PaymentAmount": 2000.00,
+                        "PaymentAvailableAmount": 2000.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayoutMobileMoney",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "update MerchantBalance set AvailableAmount=500000.00 where methodid=111 and SubID=1016",
+                    "expect": {
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>KES</Currency><Description>Automated test payout</Description><CustomerFirstName>Automation</CustomerFirstName><CustomerLastName>User</CustomerLastName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>2540700000000</CustomerPhone><PayOption>MOBILEMONEY</PayOption><BankCode>MPS</BankCode><CountryCode>KE</CountryCode></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption",
+                        "BankCode"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 75000,
+                    "query": "SELECT [FlutterwavePayouts].[ID] as ID ,[FlutterwavePayouts].[GPaymentID] as TransactionID ,  [FlutterwavePayouts].[MerchantID] as MerchantID , [FlutterwavePayouts].[MerchantTID] as MerchantTID , [FlutterwavePayouts].[Amount] as Amount ,[FlutterwavePayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[FlutterwavePayouts],  [PaymentStateDefs] where [FlutterwavePayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayouts].GPaymentID = @TRXID and [FlutterwavePayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayoutMobileBankTransfer",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>20000</Amount><Currency>NGN</Currency><Description>Automated test payout</Description><CustomerFirstName>Automation</CustomerFirstName><CustomerLastName>User</CustomerLastName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>2540700000000</CustomerPhone><PayOption>BANKTRANSFER</PayOption><BankCode>044</BankCode><AccountNumber>0690000040</AccountNumber><CountryCode>NG</CountryCode></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption",
+                        "BankCode"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "20000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 75000,
+                    "query": "SELECT [FlutterwavePayouts].[ID] as ID ,[FlutterwavePayouts].[GPaymentID] as TransactionID ,  [FlutterwavePayouts].[MerchantID] as MerchantID , [FlutterwavePayouts].[MerchantTID] as MerchantTID , [FlutterwavePayouts].[Amount] as Amount ,[FlutterwavePayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[FlutterwavePayouts],  [PaymentStateDefs] where [FlutterwavePayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayouts].GPaymentID = @TRXID and [FlutterwavePayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount":200.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayoutMobileBarter",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>flutterwave</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>20000</Amount><Currency>NGN</Currency><Description>Automated test payout</Description><CustomerFirstName>Automation</CustomerFirstName><CustomerLastName>User</CustomerLastName><CustomerEmail>user@test.com</CustomerEmail><CustomerPhone>+2348000000000</CustomerPhone><PayOption>BARTER</PayOption><BankCode>barter</BankCode><CountryCode>NG</CountryCode></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PayOption",
+                        "BankCode"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "20000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 75000,
+                    "query": "SELECT [FlutterwavePayouts].[ID] as ID ,[FlutterwavePayouts].[GPaymentID] as TransactionID ,  [FlutterwavePayouts].[MerchantID] as MerchantID , [FlutterwavePayouts].[MerchantTID] as MerchantTID , [FlutterwavePayouts].[Amount] as Amount ,[FlutterwavePayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[FlutterwavePayouts],  [PaymentStateDefs] where [FlutterwavePayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [FlutterwavePayouts].GPaymentID = @TRXID and [FlutterwavePayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount":200.00
+                    }
+                }
+            ]
+        }
+    ]
+}       

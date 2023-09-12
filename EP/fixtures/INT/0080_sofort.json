@@ -1,0 +1,134 @@
+{
+    "method": {
+        "ID": 80,
+        "name": "Sofort",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>sofort</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>150</Amount><Currency>EUR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>EP Automated Test Payment</Description><Language>en-US</Language><Country>DE</Country><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><SEPAInformation><IBAN>DE89370400440532013000</IBAN><BIC>SFRTDE20XXX</BIC></SEPAInformation></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "150"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Accept cookies page",
+                    "url": "www.sofort.com",
+                    "elements": [
+                        {
+                            "path": "(//button[.='Accept all'])[3]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "www.sofort.com",
+                    "elements": [
+                        {
+                            "path": "//p[contains(@class,'js-toggle-details')]"
+                        },
+                        {
+                            "path": "//input[@id='BackendFormLOGINNAMEUSERID']",
+                            "value": "test",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@id='BackendFormUSERPIN']",
+                            "value": "12345",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[contains(text(),'Next')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 2",
+                    "url": "www.sofort.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='description' and contains(text(), 'Girokonto (Max Mustermann)')]"
+                        },
+                        {
+                            "path": "//input[@id='account-1']",
+                            "action": "check"
+                        },
+                        {
+                            "path": "//button[contains(text(),'Next')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "www.sofort.com",
+                    "elements": [
+                        {
+                            "path": "//input[@class='encrypted']",
+                            "value": "12345",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[contains(text(),'Next')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [SofortPayments].[PaymentID] as ID, [SofortPayments].[GPaymentID] as TransactionID, [SofortPayments].[MerchantID] as MerchantID, [SofortPayments].[MerchantTID] as MerchantTID, [SofortPayments].[Amount] as Amount, [SofortPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [SofortPayments].[Description] as Description  FROM [Europay].[dbo].[SofortPayments], [PaymentStateDefs] where [SofortPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [SofortPayments].GPaymentID = @TRXID and [SofortPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.5
+                    }
+                }
+            ]
+        }   
+    ]
+}

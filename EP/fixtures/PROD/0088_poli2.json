@@ -1,0 +1,74 @@
+{
+    "method": {
+        "ID": 88,
+        "name": "poli2",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayinAUD",
+                "tags": [],
+                "description": "",
+                "environment": "production",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>poli2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>AUD</Currency><Description>VS EP Automated Test Payment</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "paywithpoli.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='bankdropdown']"
+                        },
+                        {
+                            "path": "//*[@id='cancelButton']"
+                        },
+                        {
+                            "path": "//*[@id='merchantInformationRight']//*[contains(text(),'POLi ID')]/..",
+                            "value": "POLi\\s+ID\\s*\\:\\s*\\d*",
+                            "action": "testRegex"
+                        },
+                        {
+                            "path": "//div[contains(text(),'Continue')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [Poli2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Poli2Payments], [PaymentStateDefs] where [Poli2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [Poli2Payments].GPaymentID = @TRXID and [Poli2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

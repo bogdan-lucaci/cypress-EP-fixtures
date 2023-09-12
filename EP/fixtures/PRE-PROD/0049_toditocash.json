@@ -1,0 +1,63 @@
+{
+    "method": {
+        "ID": 49,
+        "name": "toditocash",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>toditocash</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>MXN</Currency><Country>MX</Country><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><CardNumber>2612349561</CardNumber><CardPIN>1381</CardPIN></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Country"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [ToditoCashPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[ToditoCashPayments], [PaymentStateDefs] where [ToditoCashPayments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [ToditoCashPayments].[PaymentID] = (SELECT [ToditoCashPayments].[PaymentID] FROM [Europay].[dbo].[ToditoCashPayments]  inner join SystemPayments on ToditoCashPayments.[PaymentID] = SystemPayments.PaymentID and SystemPayments.MerchantID = @MID and SystemPayments.GPaymentID = @TRXID)",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 0.05
+                    }
+                }
+            ]
+        }
+    ]
+}

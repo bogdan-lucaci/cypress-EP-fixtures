@@ -1,0 +1,505 @@
+{
+    "method": {
+        "ID": 112,
+        "name": "Coinify",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": ["@smoke"],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1199</Amount><Currency>EUR</Currency><Description>Functional Test Coinify Payment</Description><CustomerEmail>tests@smart2pay.com</CustomerEmail><CustomerID>6af46318-9e60-4390-8bf0-e042d7b96b21</CustomerID><CustomerName>Functional Test</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1199"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']//div//h1[contains(text(),'NUVEI')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//button[contains(text(),'Scan QR')]"
+                        },
+                        {
+                            "path": "//*[@alt='qr_coin_symbol']"
+                        },
+                        {
+                            "path": "//*[@id='root']//*[contains(text(),'BTC')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//span[contains(text(),'Details')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(),'11.99')]"
+                        },
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(), $MTID)]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div/button[contains(@title,'SettingsButton')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//div/span[contains(text(),'Completed')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [CoinifyPayments].[ID] as ID, [CoinifyPayments].[GPaymentID] as TransactionID, [CoinifyPayments].[MerchantID] as MerchantID, [CoinifyPayments].[MerchantTID] as MerchantTID, [CoinifyPayments].[Amount] as Amount, [CoinifyPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [CoinifyPayments].[Description] as Description  FROM [Europay].[dbo].[CoinifyPayments], [PaymentStateDefs] where [CoinifyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyPayments].GPaymentID=@TRXID and [CoinifyPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 11.99
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "Refund",
+                "tags": ["@refund"],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1199</Amount><Currency>EUR</Currency><Description>Functional Test Coinify Payment</Description><CustomerEmail>tests@smart2pay.com</CustomerEmail><CustomerID>6af46318-9e60-4390-8bf0-e042d7b96b21</CustomerID><CustomerName>Functional Test</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1199"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']//div//h1[contains(text(),'NUVEI')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//button[contains(text(),'Scan QR')]"
+                        },
+                        {
+                            "path": "//*[@alt='qr_coin_symbol']"
+                        },
+                        {
+                            "path": "//*[@id='root']//*[contains(text(),'BTC')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//span[contains(text(),'Details')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(),'11.99')]"
+                        },
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(), $MTID)]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div/button[contains(@title,'SettingsButton')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//div/span[contains(text(),'Completed')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [CoinifyPayments].[ID] as ID ,[CoinifyPayments].[GPaymentID] as TransactionID , [CoinifyPayments].[MerchantID] as MerchantID , [CoinifyPayments].[MerchantTID] as MerchantTID , [CoinifyPayments].[Amount] as Amount,[CoinifyPayments].[AvailableAmount] as AvailableAmount  ,[CoinifyPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinifyPayments].[Description] as Description   FROM [Europay].[dbo].[CoinifyPayments], [PaymentStateDefs] where [CoinifyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyPayments].GPaymentID = @TRXID and [CoinifyPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 11.99,
+                        "AvailableAmount":11.99
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1199</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1199"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM CoinifyPayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN CoinifyRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Open",
+                        "RefundAmount": 11.99,
+                        "PaymentAmount": 11.99,
+                        "PaymentAvailableAmount": 0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": ["@sanity", "@refund"],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1199</Amount><Currency>EUR</Currency><Description>Functional Test Coinify Payment</Description><CustomerEmail>tests@smart2pay.com</CustomerEmail><CustomerID>6af46318-9e60-4390-8bf0-e042d7b96b21</CustomerID><CustomerName>Functional Test</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1199"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']//div//h1[contains(text(),'NUVEI')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//button[contains(text(),'Scan QR')]"
+                        },
+                        {
+                            "path": "//*[@alt='qr_coin_symbol']"
+                        },
+                        {
+                            "path": "//*[@id='root']//*[contains(text(),'BTC')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//span[contains(text(),'Details')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(),'11.99')]"
+                        },
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(), $MTID)]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div/button[contains(@title,'SettingsButton')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//div/span[contains(text(),'Completed')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [CoinifyPayments].[ID] as ID ,[CoinifyPayments].[GPaymentID] as TransactionID , [CoinifyPayments].[MerchantID] as MerchantID , [CoinifyPayments].[MerchantTID] as MerchantTID , [CoinifyPayments].[Amount] as Amount,[CoinifyPayments].[AvailableAmount] as AvailableAmount  ,[CoinifyPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinifyPayments].[Description] as Description   FROM [Europay].[dbo].[CoinifyPayments], [PaymentStateDefs] where [CoinifyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyPayments].GPaymentID = @TRXID and [CoinifyPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 11.99,
+                        "AvailableAmount": 11.99
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action> <MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>599</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "35"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT CR.Amount AS RefundAmount, CP.Amount AS PaymentAmount, CP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM CoinifyPayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN CoinifyRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.MerchantID = @MID AND CR.InitialTransactionID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 5.99,
+                        "PaymentAmount": 11.99,
+                        "PaymentAvailableAmount": 11.99
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "CancelRefund",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1199</Amount><Currency>EUR</Currency><Description>Functional Test Coinify Payment</Description><CustomerEmail>tests@smart2pay.com</CustomerEmail><CustomerID>6af46318-9e60-4390-8bf0-e042d7b96b21</CustomerID><CustomerName>Functional Test</CustomerName><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1199"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']//div//h1[contains(text(),'NUVEI')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//button[contains(text(),'Scan QR')]"
+                        },
+                        {
+                            "path": "//*[@alt='qr_coin_symbol']"
+                        },
+                        {
+                            "path": "//*[@id='root']//*[contains(text(),'BTC')]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div//span[contains(text(),'Details')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(),'11.99')]"
+                        },
+                        {
+                            "path": "//*[@id='root']/div//span[contains(text(), $MTID)]"
+                        },
+                        {
+                            "path": "//*[@id='root']//div/button[contains(@title,'SettingsButton')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "checkout.sandbox.coinify.com",
+                    "elements": [
+                        {
+                            "path": "//div/span[contains(text(),'Completed')]",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [CoinifyPayments].[ID] as ID ,[CoinifyPayments].[GPaymentID] as TransactionID , [CoinifyPayments].[MerchantID] as MerchantID , [CoinifyPayments].[MerchantTID] as MerchantTID , [CoinifyPayments].[Amount] as Amount,[CoinifyPayments].[AvailableAmount] as AvailableAmount  ,[CoinifyPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinifyPayments].[Description] as Description   FROM [Europay].[dbo].[CoinifyPayments], [PaymentStateDefs] where [CoinifyPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyPayments].GPaymentID = @TRXID and [CoinifyPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 11.99,
+                        "AvailableAmount": 11.99
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"> <Action>REFUND_PAYIN</Action> <MID>$MID</MID> <MSID>1016</MSID> <PaymentMethod>coinify</PaymentMethod> <IPAddress>85.186.26.139</IPAddress> <Hash>$HASH</Hash> <Details> <MTID>$MTID</MTID> <Amount>1199</Amount> <Currency>EUR</Currency> <InitialTransactionID>$TRXID</InitialTransactionID> </Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [CoinifyRefunds].[ID] as ID ,[CoinifyRefunds].[GPaymentID] as TransactionID , [CoinifyRefunds].[MerchantID] as MerchantID , [CoinifyRefunds].[MerchantTID] as MerchantTID , [CoinifyRefunds].[Amount] as Amount ,[CoinifyRefunds].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinifyRefunds].[Description] as Description   FROM [Europay].[dbo].[CoinifyRefunds], [PaymentStateDefs] where [CoinifyRefunds].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyRefunds].GPaymentID = @TRXID and [CoinifyRefunds].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 11.99
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_REFUND</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>coinify</PaymentMethod><IPAddress>85.186.26.139</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>1199</Amount><Currency>EUR</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "TRXID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [CoinifyRefunds].[ID] as ID ,[CoinifyRefunds].[GPaymentID] as TransactionID , [CoinifyRefunds].[MerchantID] as MerchantID , [CoinifyRefunds].[MerchantTID] as MerchantTID , [CoinifyRefunds].[Amount] as Amount ,[CoinifyRefunds].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [CoinifyRefunds].[Description] as Description   FROM [Europay].[dbo].[CoinifyRefunds], [PaymentStateDefs] where [CoinifyRefunds].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [CoinifyRefunds].GPaymentID = @TRXID and [CoinifyRefunds].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Cancelled",
+                        "Amount": 11.99
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT CR.ID AS RefundID, CR.GPaymentID AS RefundPaymentID, CR.MerchantID AS RefundMerchantID, CR.Amount AS RefundAmount, CP.Amount as PaymentAmount, CP.AvailableAmount as PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM CoinifyPayments AS CP CROSS JOIN PaymentStateDefs INNER JOIN CoinifyRefunds AS CR ON CP.GPaymentID = CR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = CR.PaymentStateDefID WHERE CR.GPaymentID= @TRXID AND CR.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Cancelled",
+                        "PaymentAmount" : 11.99,
+                        "PaymentAvailableAmount": 11.99
+                    }
+                }
+            ]
+        }
+    ]
+}

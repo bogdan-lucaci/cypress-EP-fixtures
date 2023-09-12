@@ -1,0 +1,74 @@
+{
+    "method": {
+        "ID": 59,
+        "name": "Mercadopago 2",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>mercadopago2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>BRL</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>pt-BR</Language><Description>VS EP Automated Test Payment</Description><CustomerName FirstName=\"Andre\" LastName=\"Boesing\" /><CustomerEmail>test_user_61485314@testuser.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='mp_login_row']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "www.mercadopago.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='user_id']"
+                        },
+                        {
+                            "path": "//*[@id='login_user_form']//button[@type='submit']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [MercadoPago2Payments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[MercadoPago2Payments], [PaymentStateDefs] where [MercadoPago2Payments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [MercadoPago2Payments].GPaymentID = @TRXID and [MercadoPago2Payments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

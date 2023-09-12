@@ -1,0 +1,121 @@
+{
+    "method": {
+        "ID": 110,
+        "name": "payfuture",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>payfuture</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>INR</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerOptionID>1</CustomerOptionID><CustomerFirstName>test</CustomerFirstName><CustomerLastName>test</CustomerLastName><CustomerEmail>test@gmail.com</CustomerEmail><CustomerPhone>01234567893</CustomerPhone><MerchantSubTransactionID>Payfuture</MerchantSubTransactionID><CustomerAddress><Street>test</Street><City>test</City><State>te</State><ZipCode>12345</ZipCode><CountryCode>IN</CountryCode></CustomerAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "paygate10.com",
+                    "elements": [
+                        {
+                            "path": "//img[@alt='Paygate10 Admin Dashboard']"
+                        },
+                        {
+                            "path": "//a[@id='btnDecline']"
+                        },
+                        {
+                            "path": "//a[@id='btnCancel']"
+                        },
+                        {
+                            "path": "//a[@id='btnApprove']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [PayFuturePayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[PayFuturePayments], [PaymentStateDefs] where [PayFuturePayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [PayFuturePayments].GPaymentID = @TRXID and [PayFuturePayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>payfuture</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>30000</Amount><Currency>INR</Currency><Description>test Payout</Description><CustomerEmail>test@gmail.com</CustomerEmail><CustomerOptionID>1</CustomerOptionID><CustomerAccountName>test</CustomerAccountName><CustomerAccountNumber>123456789</CustomerAccountNumber><CustomerCountryCode>IN</CustomerCountryCode><MerchantSubTransactionID>Payfuture</MerchantSubTransactionID><BankDetails><BankName>apnaBank</BankName><BankBranch>Mumbai</BankBranch><BankAddress>Mumbai</BankAddress><BankIFSC>BKID0008091</BankIFSC></BankDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "30000",
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [PayFuturePayouts].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[PayFuturePayouts], [PaymentStateDefs] where [PayFuturePayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [PayFuturePayouts].GPaymentID = @TRXID and [PayFuturePayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 300
+                    }
+                }
+            ]
+        }
+    ]
+}

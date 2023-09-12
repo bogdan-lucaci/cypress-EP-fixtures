@@ -1,0 +1,106 @@
+{
+    "method": {
+        "ID": 37,
+        "name": "enets",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>enets</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>SGD</Currency><SuccessURL>http://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Language>en-US</Language><Description>VS EP Automated Test Payment</Description><CustomerName>John Doe</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@name='eNets']"
+                        },
+                        {
+                            "path": "//*[@id='btnCancel']"
+                        },
+                        {
+                            "path": "//input[@id='selBankID'][@value=152]",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//*[@id='btnSubmit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "uat2.enets.sg",
+                    "elements": [
+                        {
+                            "path": "//td[contains(text(),'Txn_Amt')]"
+                        },
+                        {
+                            "path": "//input[@name='Txn_Amt']"
+                        },
+                        {
+                            "path": "//td[contains(text(),'Txn_Currency_Code')]"
+                        },
+                        {
+                            "path": "//input[@name='Txn_Currency_Code']"
+                        },
+                        {
+                            "path": "//*[@name='submitbutton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EnetsPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[EnetsPayments] with (NOLOCK), [PaymentStateDefs] where [EnetsPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EnetsPayments.GPaymentID = @TRXID and [EnetsPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

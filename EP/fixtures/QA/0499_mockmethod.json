@@ -1,0 +1,225 @@
+{
+    "method": {
+        "ID": 499,
+        "name": "mockmethod",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"> <Action>INSERT_PAYIN</Action> <MID>$MID</MID> <MSID>1000</MSID> <PaymentMethod>MockMethod</PaymentMethod> <IPAddress>127.0.0.1</IPAddress> <Hash>$HASH</Hash> <Details>  <MTID>$MTID</MTID>  <Amount>100</Amount>  <Currency>EUR</Currency>  <SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL>  <FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL>  <CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL>  <ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL>  <Description>{\"status\":\"Success\", \"message\":\"Automation MockMethod payment\"}</Description>  <Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>john.doe@test.com</Email>  </Customer> </Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Success Demo",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT  *  FROM   MockMethodPayments WHERE  GPaymentID = @TRXID AND MerchantID = @MID",
+                    "expect": {
+                        "PaymentStateDefID": 2,
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "FullRefund",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"> <Action>INSERT_PAYIN</Action> <MID>$MID</MID> <MSID>1000</MSID> <PaymentMethod>MockMethod</PaymentMethod> <IPAddress>127.0.0.1</IPAddress> <Hash>$HASH</Hash> <Details>  <MTID>$MTID</MTID>  <Amount>100</Amount>  <Currency>EUR</Currency>  <SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL>  <FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL>  <CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL>  <ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL>  <Description>{\"status\":\"Success\", \"message\":\"Automation MockMethod payment\"}</Description>  <Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>john.doe@test.com</Email>  </Customer> </Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Success Demo",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT  *  FROM   MockMethodPayments WHERE  GPaymentID = @TRXID AND MerchantID = @MID",
+                    "expect": {
+                        "PaymentStateDefID": 2,
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>MockMethod</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Description>{\"status\":\"Success\", \"message\":\"Automation MockMethod refund\"}</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT PR.Amount AS RefundAmount, PP.Amount AS PaymentAmount, PP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM MockMethodPayments AS PP CROSS JOIN PaymentStateDefs INNER JOIN MockMethodRefunds AS PR ON PP.GPaymentID = PR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = PR.PaymentStateDefID WHERE PR.MerchantID = @MID AND PR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 1.00,
+                        "PaymentAmount": 1.00,
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefund",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"> <Action>INSERT_PAYIN</Action> <MID>$MID</MID> <MSID>1000</MSID> <PaymentMethod>MockMethod</PaymentMethod> <IPAddress>127.0.0.1</IPAddress> <Hash>$HASH</Hash> <Details>  <MTID>$MTID</MTID>  <Amount>100</Amount>  <Currency>EUR</Currency>  <SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL>  <FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL>  <CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL>  <ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL>  <Description>{\"status\":\"Success\", \"message\":\"Automation MockMethod payment\"}</Description>  <Customer><FirstName>John</FirstName><LastName>Doe</LastName><Email>john.doe@test.com</Email>  </Customer> </Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Success Demo",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "#top_text",
+                            "should": ["contain", "Transaction Successful!"]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT  *  FROM   MockMethodPayments WHERE  GPaymentID = @TRXID AND MerchantID = @MID",
+                    "expect": {
+                        "PaymentStateDefID": 2,
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>MockMethod</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>40</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Description>{\"status\":\"Success\", \"message\":\"Automation MockMethod refund\"}</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "40"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT PR.Amount AS RefundAmount, PP.Amount AS PaymentAmount, PP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM MockMethodPayments AS PP CROSS JOIN PaymentStateDefs INNER JOIN MockMethodRefunds AS PR ON PP.GPaymentID = PR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = PR.PaymentStateDefID WHERE PR.MerchantID = @MID AND PR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 0.40,
+                        "PaymentAmount": 1.00,
+                        "PaymentAvailableAmount": 0.60
+                    }
+                }
+            ]
+        }
+
+    ]
+}

@@ -1,0 +1,112 @@
+{
+    "method": {
+        "ID": 100,
+        "name": "interacparamount",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>interacparamount</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000</Amount><Currency>CAD</Currency><Description>Test</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CustomerID>12345</CustomerID><CustomerFirstName>Test</CustomerFirstName><CustomerLastName>User</CustomerLastName><CustomerEmail>nuvei_buyer@maildrop.cc</CustomerEmail><CustomerPhoneNumber>6135550104</CustomerPhoneNumber></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "Country"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "staging.paydirectnow.com",
+                    "elements": [
+                        {
+                            "path": "#logo_interac",
+                            "action": "assert",
+                            "should": ["exist"]
+                        },
+                        {
+                            "path": "div[style='text-align: center;']",
+                            "action": "assert",
+                            "should": ["contain", "Your request cannot be processed as you are currently in a geographic area not supported by Interac."]
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [InteracParamountPayments].[Amount] as Amount , [InteracParamountPayments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[InteracParamountPayments] with (NOLOCK), [PaymentStateDefs] where [InteracParamountPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and InteracParamountPayments.GPaymentID = @TRXID and [InteracParamountPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10.00,
+                        "AvailableAmount": 10.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>interacparamount</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>CAD</Currency><Description>Test</Description><Language>en-US</Language><CustomerID>12345</CustomerID><CustomerFirstName>Test</CustomerFirstName><CustomerLastName>User</CustomerLastName><CustomerEmail>nuvei_buyer@maildrop.cc</CustomerEmail><CustomerPhoneNumber>6135550104</CustomerPhoneNumber><CustomerSecurityQuestion>What is your favorite country</CustomerSecurityQuestion><CustomerSecurityAnswer>Canada</CustomerSecurityAnswer><CustomerIPAddress>1.2.3.4</CustomerIPAddress></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [InteracParamountPayouts].[Amount] as Amount, [InteracParamountPayouts].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[InteracParamountPayouts] with (NOLOCK), [PaymentStateDefs] where [InteracParamountPayouts].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and InteracParamountPayouts.GPaymentID = @TRXID and [InteracParamountPayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}       

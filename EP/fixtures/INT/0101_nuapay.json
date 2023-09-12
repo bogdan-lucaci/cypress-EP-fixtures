@@ -1,0 +1,785 @@
+{
+    "method": {
+        "ID": 101,
+        "name": "Nuapay",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "OpenPreapproval SEPA",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": "Notification delay more than 1 minute."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>OPEN_PREAPPROVAL</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><Currency>EUR</Currency><ReturnURL>http://demo2.smart2pay.com/_redirectURLs/success.html</ReturnURL><Description>Preapproval Description</Description><Customer><Name>Test Buyer</Name><Email>buyer@smart2pay.com</Email><Address><CountryCode>DE</CountryCode><City>London</City><Line>Champs Elysee 345</Line></Address><Bank><IBAN>DE89370400440532013000</IBAN></Bank></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "ReturnURL",
+                        "Description"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID": "1"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "preapprovalURL": "https://europaytest.smart2pay.com/Nuapay/Preapproval/Landing.aspx?ID="
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "sandbox.nuapay.com",
+                    "elements": [
+                        {
+                            "path": "//input[@type='checkbox']",
+                            "action": "check"
+                        },
+                        {
+                            "path": "//a[@id='formbtn']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 65000,
+                    "query": "SELECT ID, MerchantID, PaymentTypeID, InputDateTime, Description, PreapprovalStateDefID, NotificationDateTime, SubID, LastNotifiedPreapprovalStateDefID FROM PreapprovalRequests WHERE ID = @PREAPPROVALID",
+                    "expect": {
+                        "PreapprovalStateDefID": 2,
+                        "PaymentTypeID": 101
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><Description>Preapproved payment</Description><ExecutionDate>$TODAYDATE</ExecutionDate></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },               
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 2000,
+                    "query": "SELECT [NuapayPayments].[Amount] as Amount , [NuapayPayments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[NuapayPayments] with (NOLOCK), [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and NuapayPayments.GPaymentID = @TRXID and [NuapayPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "OpenPreapproval BACS",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Endless loop on provider's page navigation."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1130</Amount><Currency>GBP</Currency><OpenBanking><SuccessURL>http://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerBankID>8ow24y2pdx</CustomerBankID><CustomerIBAN>GB90SELN00999957437100</CustomerIBAN><CustomerAccountSchemeName>IBAN</CustomerAccountSchemeName><CustomerName>Madlene En Francais</CustomerName><BillingAddress><Street>Champs Elysee</Street><City>London</City><StreetNumber>345</StreetNumber><ZipCode>345353</ZipCode><CountryCode>GB</CountryCode></BillingAddress></OpenBanking><PreapprovalDetails><PreapprovalDescription>Preapproval Description</PreapprovalDescription><PreapprovalReturnURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</PreapprovalReturnURL></PreapprovalDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerBankID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1130"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "psu",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@id='password']",
+                            "value": "psu",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//select[@id='selectAccount']",
+                            "value": 1,
+                            "action": "select"
+                        },
+                        {
+                            "path": "//input[@id='paynow']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 10000,
+                    "description": "Provider page 4",
+                    "url": "sandbox.nuapay.com",
+                    "elements": [
+                        {
+                            "path": "//a[@id='sign-continue-btn']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//input[@type='checkbox']",
+                            "action": "click"
+                        },
+                        {
+                            "path": "//a[@id='sign-submit-btn']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 5",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayPayments].[PaymentID] as ID ,[NuapayPayments].[GPaymentID] as TransactionID, [NuapayPayments].[MerchantID] as MerchantID , [NuapayPayments].[MerchantTID] as MerchantTID , [NuapayPayments].[Amount] as Amount ,[NuapayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [NuapayPayments].[Description] as Description  , [NuapayPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[NuapayPayments], [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [NuapayPayments].GPaymentID = @TRXID and [NuapayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 11.30
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_IBAN_GBP_Nuapay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Endless loop on provider's page navigation."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><Description>Mada Still Rulz</Description><OpenBanking><SuccessURL>http://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerBankID>8ow24y2pdx</CustomerBankID><CustomerIBAN>GB08SELN04041300000874</CustomerIBAN><CustomerAccountSchemeName>IBAN</CustomerAccountSchemeName><CustomerName>Madlene En Francais</CustomerName><BillingAddress><Street>Champs Elysee</Street><City>London</City><StreetNumber>345</StreetNumber><ZipCode>345353</ZipCode><CountryCode>GB</CountryCode></BillingAddress></OpenBanking></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerBankID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please authenticate to Nuapay Bank:')]"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "psu",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@id='password']",
+                            "value": "psu",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please prove your identity (Strong Customer Authentication)')]"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Pay : SafeCharge Limited GBP 1.30')]"
+                        },
+                        {
+                            "path": "//select[@id='selectAccount']",
+                            "value": 1,
+                            "action": "select"
+                        },
+                        {
+                            "path": "//input[@id='paynow']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 10000,
+                    "description": "Provider page 4",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayPayments].[PaymentID] as ID ,[NuapayPayments].[GPaymentID] as TransactionID, [NuapayPayments].[MerchantID] as MerchantID , [NuapayPayments].[MerchantTID] as MerchantTID , [NuapayPayments].[Amount] as Amount ,[NuapayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [NuapayPayments].[Description] as Description  , [NuapayPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[NuapayPayments], [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [NuapayPayments].GPaymentID = @TRXID and [NuapayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_SortCode_GBP_Nuapay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Endless loop on provider's page navigation."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><Description>Mada Still Rulz</Description><OpenBanking><SuccessURL>http://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerBankID>8ow24y2pdx</CustomerBankID><CustomerAccountNumber>00000067</CustomerAccountNumber><CustomerSortCode>040652</CustomerSortCode><CustomerAccountSchemeName>SortCodeAccountNumber</CustomerAccountSchemeName><CustomerName>Madlene En Francais</CustomerName><BillingAddress><Street>Champs Elysee</Street><City>London</City><StreetNumber>345</StreetNumber><ZipCode>345353</ZipCode><CountryCode>GB</CountryCode></BillingAddress></OpenBanking></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerBankID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please authenticate to Nuapay Bank:')]"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "psu",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@id='password']",
+                            "value": "psu",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please prove your identity (Strong Customer Authentication)')]"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Pay : SafeCharge Limited GBP 1.30')]"
+                        },
+                        {
+                            "path": "//select[@id='selectAccount']",
+                            "value": 1,
+                            "action": "select"
+                        },
+                        {
+                            "path": "//input[@id='paynow']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 10000,
+                    "description": "Provider page 4",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayPayments].[PaymentID] as ID ,[NuapayPayments].[GPaymentID] as TransactionID, [NuapayPayments].[MerchantID] as MerchantID , [NuapayPayments].[MerchantTID] as MerchantTID , [NuapayPayments].[Amount] as Amount ,[NuapayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [NuapayPayments].[Description] as Description  , [NuapayPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[NuapayPayments], [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [NuapayPayments].GPaymentID = @TRXID and [NuapayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_IBAN_GBP_Nuapay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Endless loop on provider's page navigation."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><Description>Mada Still Rulz</Description><OpenBanking><SuccessURL>http://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerBankID>8ow24y2pdx</CustomerBankID><CustomerIBAN>GB08SELN04041300000874</CustomerIBAN><CustomerAccountSchemeName>IBAN</CustomerAccountSchemeName><CustomerName>Madlene En Francais</CustomerName><BillingAddress><Street>Champs Elysee</Street><City>London</City><StreetNumber>345</StreetNumber><ZipCode>345353</ZipCode><CountryCode>GB</CountryCode></BillingAddress></OpenBanking></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerBankID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please authenticate to Nuapay Bank:')]"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "psu",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@id='password']",
+                            "value": "psu",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please prove your identity (Strong Customer Authentication)')]"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Pay : SafeCharge Limited GBP 1.30')]"
+                        },
+                        {
+                            "path": "//select[@id='selectAccount']",
+                            "value": 1,
+                            "action": "select"
+                        },
+                        {
+                            "path": "//input[@id='paynow']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 10000,
+                    "description": "Provider page 4",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayPayments].[PaymentID] as ID ,[NuapayPayments].[GPaymentID] as TransactionID, [NuapayPayments].[MerchantID] as MerchantID , [NuapayPayments].[MerchantTID] as MerchantTID , [NuapayPayments].[Amount] as Amount ,[NuapayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [NuapayPayments].[Description] as Description  , [NuapayPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[NuapayPayments], [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [NuapayPayments].GPaymentID = @TRXID and [NuapayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayRefunds].[ID] as ID ,[NuapayRefunds].[GPaymentID] as TransactionID ,[NuapayRefunds].[MerchantID] as MerchantID ,[NuapayRefunds].[MerchantTID] as MerchantTID ,[NuapayRefunds].[Amount] as Amount ,[NuapayRefunds].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status ,[NuapayRefunds].[Description] as Description   FROM [Europay].[dbo].[NuapayRefunds] with (NOLOCK), [PaymentStateDefs] where [NuapayRefunds].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and NuapayRefunds.GPaymentID = @TRXID and [NuapayRefunds].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT NR.ID AS RefundID, NR.GPaymentID AS RefundPaymentID, NR.MerchantID AS RefundMerchantID, NR.Amount AS RefundAmount, NP.Amount as PaymentAmount, NP.AvailableAmount as PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM NuapayPayments AS NP CROSS JOIN PaymentStateDefs INNER JOIN NuapayRefunds AS NR ON NP.GPaymentID = NR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = NR.PaymentStateDefID WHERE NR.GPaymentID= @TRXID AND NR.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "PaymentAmount" : 1.30,
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_SortCode_GBP_Nuapay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": true,
+                "knownIssue": "Endless loop on provider's page navigation."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><Description>Mada Still Rulz</Description><OpenBanking><SuccessURL>http://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>http://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>http://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>http://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerBankID>8ow24y2pdx</CustomerBankID><CustomerAccountNumber>00000067</CustomerAccountNumber><CustomerSortCode>040652</CustomerSortCode><CustomerAccountSchemeName>SortCodeAccountNumber</CustomerAccountSchemeName><CustomerName>Madlene En Francais</CustomerName><BillingAddress><Street>Champs Elysee</Street><City>London</City><StreetNumber>345</StreetNumber><ZipCode>345353</ZipCode><CountryCode>GB</CountryCode></BillingAddress></OpenBanking></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerBankID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please authenticate to Nuapay Bank:')]"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "psu",
+                            "action": "type"
+                        },                        {
+                            "path": "//input[@id='password']",
+                            "value": "psu",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Please prove your identity (Strong Customer Authentication)')]"
+                        },
+                        {
+                            "path": "//button[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "oidc-uat.sentenialtest.com",
+                    "elements": [
+                        {
+                            "path": "//*[@class='mat-text-muted' and contains(text(),'Pay : SafeCharge Limited GBP 1.30')]"
+                        },
+                        {
+                            "path": "//select[@id='selectAccount']",
+                            "value": 1,
+                            "action": "select"
+                        },
+                        {
+                            "path": "//input[@id='paynow']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 10000,
+                    "description": "Provider page 4",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayPayments].[PaymentID] as ID ,[NuapayPayments].[GPaymentID] as TransactionID, [NuapayPayments].[MerchantID] as MerchantID , [NuapayPayments].[MerchantTID] as MerchantTID , [NuapayPayments].[Amount] as Amount ,[NuapayPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [NuapayPayments].[Description] as Description  , [NuapayPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[NuapayPayments], [PaymentStateDefs] where [NuapayPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [NuapayPayments].GPaymentID = @TRXID and [NuapayPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>130</Amount><Currency>GBP</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "130"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [NuapayRefunds].[ID] as ID ,[NuapayRefunds].[GPaymentID] as TransactionID ,[NuapayRefunds].[MerchantID] as MerchantID ,[NuapayRefunds].[MerchantTID] as MerchantTID ,[NuapayRefunds].[Amount] as Amount ,[NuapayRefunds].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status ,[NuapayRefunds].[Description] as Description   FROM [Europay].[dbo].[NuapayRefunds] with (NOLOCK), [PaymentStateDefs] where [NuapayRefunds].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and NuapayRefunds.GPaymentID = @TRXID and [NuapayRefunds].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.30
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT NR.ID AS RefundID, NR.GPaymentID AS RefundPaymentID, NR.MerchantID AS RefundMerchantID, NR.Amount AS RefundAmount, NP.Amount as PaymentAmount, NP.AvailableAmount as PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM NuapayPayments AS NP CROSS JOIN PaymentStateDefs INNER JOIN NuapayRefunds AS NR ON NP.GPaymentID = NR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = NR.PaymentStateDefID WHERE NR.GPaymentID= @TRXID AND NR.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "PaymentAmount" : 1.30,
+                        "PaymentAvailableAmount": 0.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_IBAN_GBP_Nuapay",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>nuapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>GBP</Currency><Description>test Payout</Description><CustomerName>Ana Andana</CustomerName><CustomerEmail>ana@test.com</CustomerEmail><CustomerIBAN>GB82HLFX11087412413569</CustomerIBAN><CustomerBIC>SELNGB21</CustomerBIC></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerName",
+                        "CustomerEmail",
+                        "CustomerIBAN"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 15000,
+                    "query": "SELECT [NuapayPayouts].[ID] as ID ,[NuapayPayouts].[GPaymentID] as TransactionID ,[NuapayPayouts].[MerchantID] as MerchantID , [NuapayPayouts].[MerchantTID] as MerchantTID ,[NuapayPayouts].[Amount] as Amount ,[NuapayPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,'Description_Nuapay_Payout ' as Description  , 3 as ActionTypeID FROM [Europay].[dbo].[NuapayPayouts], [PaymentStateDefs] where [NuapayPayouts].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and [NuapayPayouts].GPaymentID = @TRXID and  [NuapayPayouts].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

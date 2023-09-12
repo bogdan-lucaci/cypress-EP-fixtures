@@ -1,0 +1,202 @@
+{
+    "method": {
+        "ID": 99,
+        "name": "paguelofacil",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayinCash",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paguelofacil</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><Description>paguelofacil payment</Description><PaymentOption>cash</PaymentOption></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 7000,
+                    "description": "Provider page",
+                    "url": "checkout-demo.paguelofacil.com",
+                    "elements": [
+                        {
+                            "path": "//p[text()='$' and text()='1.00']"
+                        },
+                        {
+                            "path": "//input[@name='email']"
+                        },
+                        {
+                            "path": "//input[@type='tel']"
+                        },
+                        {
+                            "path": "//button[@class='button-c w-button button-active']"
+                        },
+                        {
+                            "path": "//img[contains(@src,'pagocash')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [PagueloFacilPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[PagueloFacilPayments] with (NOLOCK), [PaymentStateDefs] where [PagueloFacilPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and PagueloFacilPayments.GPaymentID = @TRXID and [PagueloFacilPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayinClave",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paguelofacil</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><Description>paguelofacil payment</Description><PaymentOption>clave</PaymentOption></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 7000,
+                    "description": "Provider page",
+                    "url": "checkout-demo.paguelofacil.com",
+                    "elements": [
+                        {
+                            "path": "//p[text()='$' and text()='1.00']"
+                        },
+                        {
+                            "path": "//input[@name='email']"
+                        },
+                        {
+                            "path": "//input[@type='tel']"
+                        },
+                        {
+                            "path": "//button[@class='button-c w-button button-active']"
+                        },
+                        {
+                            "path": "//img[contains(@src,'clave')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [PagueloFacilPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[PagueloFacilPayments] with (NOLOCK), [PaymentStateDefs] where [PagueloFacilPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and PagueloFacilPayments.GPaymentID = @TRXID and [PagueloFacilPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayinNequi",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>paguelofacil</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><Description>paguelofacil payment</Description><PaymentOption>nequi</PaymentOption></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 7000,
+                    "description": "Provider page",
+                    "url": "checkout-demo.paguelofacil.com",
+                    "elements": [
+                        {
+                            "path": "//p[text()='$' and text()='1.00']"
+                        },
+                        {
+                            "path": "//input[@name='email']"
+                        },
+                        {
+                            "path": "//input[@type='tel']"
+                        },
+                        {
+                            "path": "//button[@id='invalid-button-nequi-push-lk']"
+                        },
+                        {
+                            "path": "//button[@id='invalid-qr-nequi-lk']"
+                        },
+                        {
+                            "path": "//img[contains(@src,'nequi')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [PagueloFacilPayments].[Amount] as Amount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[PagueloFacilPayments] with (NOLOCK), [PaymentStateDefs] where [PagueloFacilPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and PagueloFacilPayments.GPaymentID = @TRXID and [PagueloFacilPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

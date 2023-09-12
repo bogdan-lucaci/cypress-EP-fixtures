@@ -1,0 +1,140 @@
+{
+    "method": {
+        "ID": 45,
+        "name": "AsiaPay",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayinIndonesia_PayOption_102",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>asiapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>1000000</Amount><Currency>IDR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>VS EP Automated Test Payment</Description><Language>en-GB</Language><PayOption>102</PayOption><CustomerName>Mada Rulz</CustomerName><CustomerEmail>john.doe@test.com</CustomerEmail><CustomerPhone>012345678</CustomerPhone></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1000000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "sandbox.ipay88.co.id",
+                    "elements": [
+                        {
+                            "path": "//div[@id='btn-hide']"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Transaction ID:')]"
+                        },
+                        {
+                            "path": "//*[contains(text(),'Reference  No:')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IPay88Payments].[PaymentID] as ID, [IPay88Payments].[GPaymentID] as TransactionID, [IPay88Payments].[MerchantID] as MerchantID, [IPay88Payments].[MerchantTID] as MerchantTID, [IPay88Payments].[Amount] as Amount, [IPay88Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IPay88Payments].[Description] as Description FROM [Europay].[dbo].[IPay88Payments] with (NOLOCK), [PaymentStateDefs] where [IPay88Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IPay88Payments].GPaymentID = @TRXID and [IPay88Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 10000.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayinMalaysia_PayOption_7",
+                "tags": [],
+                "description": "",
+                "environment": "pre-production",
+                "skip": false,
+                "knownIssue": "The requested URL was rejected. error message. No redirect from /entry.asp to /ConfirmPage.asp."
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><PaymentMethod>asiapay</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>MYR</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs//cancel.html</CancelURL><Description>Automated Test Payment blah</Description><Language>en-GB</Language><PayOption>7</PayOption><CustomerName>Mada Rulz Bigtime</CustomerName><CustomerEmail>mada@test.com</CustomerEmail><CustomerPhone>012345678</CustomerPhone></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IPay88Payments].[PaymentID] as ID, [IPay88Payments].[GPaymentID] as TransactionID, [IPay88Payments].[MerchantID] as MerchantID, [IPay88Payments].[MerchantTID] as MerchantTID, [IPay88Payments].[Amount] as Amount, [IPay88Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IPay88Payments].[Description] as Description FROM [Europay].[dbo].[IPay88Payments] with (NOLOCK), [PaymentStateDefs] where [IPay88Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IPay88Payments].GPaymentID = @TRXID and [IPay88Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "payment.ipay88.com",
+                    "elements": [
+                        {
+                            "path": "//span[contains(text(),'MYR 1.00')]"
+                        },
+                        {
+                            "path": "//input[@type='submit']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Failed!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [IPay88Payments].[PaymentID] as ID, [IPay88Payments].[GPaymentID] as TransactionID, [IPay88Payments].[MerchantID] as MerchantID, [IPay88Payments].[MerchantTID] as MerchantTID, [IPay88Payments].[Amount] as Amount, [IPay88Payments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status ,[IPay88Payments].[Description] as Description FROM [Europay].[dbo].[IPay88Payments] with (NOLOCK), [PaymentStateDefs] where [IPay88Payments].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and [IPay88Payments].GPaymentID = @TRXID and [IPay88Payments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Failed",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

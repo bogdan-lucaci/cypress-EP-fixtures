@@ -1,0 +1,201 @@
+{
+    "method": {
+        "ID": 114,
+        "name": "npp",
+        "supportMultiple": true,
+        "skip": false
+        
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "Insert_NPP_Payin",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\">     <Action>INSERT_PAYIN</Action>     <MID>$MID</MID>     <MSID>1016</MSID>     <PaymentMethod>NPP</PaymentMethod>     <IPAddress>127.0.0.1</IPAddress>     <Hash>$HASH</Hash>     <Details>         <MTID>$MTID</MTID>         <Amount>100</Amount>         <Currency>AUD</Currency>         <Description>MerchantService NPP Payment</Description>         <SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL>         <CustomerName>John Doe</CustomerName>     </Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "EP errorpage?",
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='lblError']"
+                        }                        
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 5000,
+					"serverName": "APM_DB",
+                    "query": "SELECT [NPPPayments].[ID] as ID ,[NPPPayments].[GPaymentID] as TransactionID ,[NPPPayments].[MerchantID] as MerchantID , [NPPPayments].[MerchantTID] as MerchantTID ,[NPPPayments].[Amount] as Amount ,[NPPPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[NPPPayments].[Description] as Description FROM [Europay].[dbo].[NPPPayments] with (NOLOCK), [PaymentStateDefs] where [NPPPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and NPPPayments.GPaymentID = @TRXID and  [NPPPayments].[MerchantID]= @MID and InputDateTime > DATEADD(MINUTE,-5, getutcdate())",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_NPP",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\">     <Action>INSERT_PAYIN</Action>     <MID>$MID</MID>     <MSID>1016</MSID>     <PaymentMethod>NPP</PaymentMethod>     <IPAddress>127.0.0.1</IPAddress>     <Hash>$HASH</Hash>     <Details>         <MTID>$MTID</MTID>         <Amount>100</Amount>         <Currency>AUD</Currency>         <Description>MerchantService NPP Payment</Description>         <SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL>         <CustomerName>John Doe</CustomerName>     </Details> </Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "EP errorpage?",
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='lblError']"
+                        }                        
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [NPPPayments].[ID] as ID ,[NPPPayments].[GPaymentID] as TransactionID ,[NPPPayments].[MerchantID] as MerchantID , [NPPPayments].[MerchantTID] as MerchantTID ,[NPPPayments].[Amount] as Amount ,[NPPPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[NPPPayments].[Description] as Description FROM [Europay].[dbo].[NPPPayments] with (NOLOCK), [PaymentStateDefs] where [NPPPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and NPPPayments.GPaymentID = @TRXID and  [NPPPayments].[MerchantID]= @MID and InputDateTime > DATEADD(MINUTE,-5, getutcdate())",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE NPPPayments SET AvailableAmount = '1.00', PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotificated = 1, NotificatedDate = DATEADD(Second, 10, InputDateTime) WHERE NPPPayments.GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [NPPPayments].[ID] as ID ,[NPPPayments].[GPaymentID] as TransactionID ,[NPPPayments].[MerchantID] as MerchantID , [NPPPayments].[MerchantTID] as MerchantTID ,[NPPPayments].[Amount] as Amount ,[NPPPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[NPPPayments].[Description] as Description FROM [Europay].[dbo].[NPPPayments] with (NOLOCK), [PaymentStateDefs] where [NPPPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and NPPPayments.GPaymentID = @TRXID and  [NPPPayments].[MerchantID]= @MID and InputDateTime > DATEADD(MINUTE,-5, getutcdate())",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>NPP</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>AUD</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 5000,
+					"serverName": "APM_DB",
+                    "query": " SELECT [NPPRefunds].[ID] as ID ,[NPPRefunds].[GPaymentID] as TransactionID ,[NPPRefunds].[MerchantID] as MerchantID ,[NPPRefunds].[MerchantTID] as MerchantTID ,[NPPRefunds].[Amount] as Amount ,[NPPRefunds].[Currency] as Currency ,[PaymentStateDefs].[Name] as Status ,[NPPRefunds].[Description] as Description FROM [Europay].[dbo].[NPPRefunds] with (NOLOCK), [PaymentStateDefs] where [NPPRefunds].PaymentStateDefID = [PaymentStateDefs].PaymentStateDefID and NPPRefunds.GPaymentID = @TRXID and [NPPRefunds].[MerchantID] =@MID and InputDateTime > DATEADD(MINUTE,-10, getutcdate())",
+                    "expect": {
+                        "Status": "Failed"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_NPP",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+                
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\">    <Action>INSERT_PAYOUT</Action>    <MID>$MID</MID>    <MSID>1016</MSID>    <PaymentMethod>NPP</PaymentMethod>    <IPAddress>127.0.0.1</IPAddress>     <Hash>$HASH</Hash>     <Details>         <MTID>$MTID</MTID>         <Amount>1100</Amount>        <Currency>AUD</Currency>        <Description>MerchantService NPP Payout</Description>        <AccountName>Merchant Test</AccountName>        <AccountNumber>318706823</AccountNumber>        <BsbNumber>802-985</BsbNumber>        <PayID>38k063@monoova.me</PayID>        <PayIDType>Email</PayIDType>        <PayOption>1</PayOption>    </Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+						"Description",
+                        "AccountName",
+                        "AccountNumber",
+                        "BsbNumber",
+						"PayID",
+						"PayIDType",
+						"PayOption"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "1100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "delay": 5000,
+					"serverName": "APM_DB",
+                    "query": "SELECT [NPPPayouts].[ID] as ID ,[NPPPayouts].[GPaymentID] as TransactionID ,[NPPPayouts].[MerchantID] as MerchantID , [NPPPayouts].[MerchantTID] as MerchantTID ,[NPPPayouts].[Amount] as Amount ,[NPPPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,'Description_Nuapay_Payout ' as Description ,114 as MethodID, 3 as ActionTypeID FROM [Europay].[dbo].[NPPPayouts], [PaymentStateDefs] where [NPPPayouts].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and [NPPPayouts].GPaymentID = @TRXID and  [NPPPayouts].[MerchantID]=@MID and InputDateTime >DATEADD(MINUTE,-5, getutcdate())",                    "expect": {
+                        "Status": "Open",
+                        "Amount": 11.00
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,1111 @@
+{
+    "method": {
+        "ID": 106,
+        "name": "Eromnet",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_SSPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>SSPAY</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'SAMSUNG pay')]"
+                        },
+                        {
+                            "path": "//span[contains(@class, 'header-title') and text() = 'Online payment']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_SSPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>SSPAY</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'SAMSUNG pay')]"
+                        },
+                        {
+                            "path": "//span[contains(@class, 'header-title') and text() = 'Online payment']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_LOCAL_CARDS",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation LocalCards</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>LocalCards</PayOption><CardCode>367</CardCode><Installments>00</Installments><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//H2[contains (text(), 'Hyundai Card')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_LOCAL_CARDS",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation LocalCards</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>LocalCards</PayOption><CardCode>367</CardCode><Installments>00</Installments><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//H2[contains (text(), 'Hyundai Card')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_PAYCO",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?> <Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>PAYCO</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[@class='logo_payco' and contains(text(),'PAYCO')]"
+                        },
+                        {
+                            "path": "//button[contains(@id, 'loginBtn')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_PAYCO",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>PAYCO</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[@class='logo_payco' and contains(text(),'PAYCO')]"
+                        },
+                        {
+                            "path": "//button[contains(@id, 'loginBtn')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_LPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>LPAY</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//img[contains(@alt,'lpay 결제하기')]"
+                        },
+                        {
+                            "path": "//a[contains(@class, 'btn01')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_LPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>LPAY</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//img[contains(@alt,'lpay 결제하기')]"
+                        },
+                        {
+                            "path": "//a[contains(@class, 'btn01')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_TOSS",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>TOSS</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'토스페이')]"
+                        },
+                        {
+                            "path": "//span[contains(text(), 'QR코드')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_TOSS",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>TOSS</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'토스페이')]"
+                        },
+                        {
+                            "path": "//span[contains(text(), 'QR코드')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_SSGPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>SSGPAY</PayOption><Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'SSGPAY앱을 설치하여 본인인증 후 이용하실 수 있습니다.')]"
+                        },
+                        {
+                            "path": "//*[contains(@title, '앱 설치하기 레이어창 열림')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_SSGPAY",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><Description>Automation SSGPAY</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>SSGPAY</PayOption> <Customer><ID>2817638</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>2353453453</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//*[contains(@alt,'SSGPAY앱을 설치하여 본인인증 후 이용하실 수 있습니다.')]"
+                        },
+                        {
+                            "path": "//*[contains(@title, '앱 설치하기 레이어창 열림')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 120.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 120.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 120.00,
+                        "AvailableAmount": 120.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>12000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "12000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 120.00,
+                        "PaymentAvailableAmount": 120.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_Eromnet_KAKAO",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>13000</Amount><Currency>KRW</Currency><Description>Automation KAKAO</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>KAKAO</PayOption> <Customer><ID>123</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>(202) 725-0128</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "13000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//h1[@class='logo-kakaopay']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 130.00,
+                        "AvailableAmount": 130.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_Eromnet_KAKAO",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>13000</Amount><Currency>KRW</Currency><Description>Automation KAKAO</Description><Language>en-US</Language><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><PayOption>KAKAO</PayOption><Customer><ID>123</ID><FirstName>Test</FirstName><LastName>User</LastName><Email>test_user@email.com</Email><PhoneNumber>(202) 725-0128</PhoneNumber></Customer></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "13000"
+                    }
+                },
+                {
+                    "type": "visitEPLanding",
+                    "delay": 20000
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 15000,
+                    "description": "Provider page",
+                    "url": "paymenttest.erompay.com",
+                    "iframes": ["#erompayIframeEmpty", "#acsDialogDetail"],
+                    "elements": [
+                        {
+                            "path": "//h1[@class='logo-kakaopay']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount , [EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 130.00
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE EromnetPayments SET AvailableAmount = 130.00, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2, IsNotified = 1, NotifiedDate = DATEADD(Second, 10, InputDateTime) WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [EromnetPayments].[ID] as ID ,[EromnetPayments].[GPaymentID] as TransactionID ,[EromnetPayments].[MerchantID] as MerchantID , [EromnetPayments].[MerchantTID] as MerchantTID ,[EromnetPayments].[Amount] as Amount ,[EromnetPayments].[AvailableAmount] as AvailableAmount, [EromnetPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[EromnetPayments].[Description] as Description  , [EromnetPayments].[PayOption] as MethodOptionID FROM [Europay].[dbo].[EromnetPayments] with (NOLOCK), [PaymentStateDefs] where [EromnetPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and EromnetPayments.GPaymentID = @TRXID and [EromnetPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 130.00,
+                        "AvailableAmount": 130.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>Eromnet</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>13000</Amount><Currency>KRW</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "13000"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PS.Name as RefundStatus, ER.Amount as RefundAmount, EP.AvailableAmount  as PaymentAvailableAmount, ER.ProviderErrorDescription as RefundProviderErrorDescription from EromnetRefunds as ER inner join EromnetPayments as EP on ER.InitialTransactionID = EP.GpaymentID inner join PaymentStateDefs as PS on PS.PaymentStateDefID=ER.PaymentStateDefID where  ER.GPaymentID= @TRXID AND ER.MerchantID= @MID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 130.00,
+                        "PaymentAvailableAmount": 130.00,
+                        "RefundProviderErrorDescription": "Refund has been rejected"
+                    }
+                }
+            ]
+        }
+    ]
+}

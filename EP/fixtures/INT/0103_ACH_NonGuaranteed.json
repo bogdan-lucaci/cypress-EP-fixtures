@@ -1,0 +1,470 @@
+{
+    "method": {
+        "ID": 103,
+        "name": "ach_nonguaranteed",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>4804638290</CustomerPhone><CustomerAddress><Street>Stradela</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_NonGuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_NonGuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_NonGuaranteedPayments.GPaymentID =@TRXID and  [ACH_NonGuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "CancelPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>4804638290</CustomerPhone><CustomerAddress><Street>Stradela</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_NonGuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_NonGuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_NonGuaranteedPayments.GPaymentID =@TRXID and  [ACH_NonGuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>CANCEL_PAYIN</Action><MID>$MID</MID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><TRXID>$TRXID</TRXID><Amount>125</Amount><Currency>USD</Currency></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "TRXID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "ReturnCode": "31",
+                        "Amount": "125"
+                    }
+                }
+
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>4804638290</CustomerPhone><CustomerAddress><Street>Stradela</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_NonGuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_NonGuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_NonGuaranteedPayments.GPaymentID =@TRXID and  [ACH_NonGuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                }, 
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE ACH_NonGuaranteedPayments SET AvailableAmount = 1.25, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2 WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><InitialTransactionID>$TRXID</InitialTransactionID><Reason>Test Refund</Reason></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "StatusID":"4",
+                        "ReturnCode":"42",
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT ACH_N_G_R.Amount AS RefundAmount, ACH_N_G_P.Amount AS PaymentAmount, ACH_N_G_P.AvailableAmount AS PaymentAvailableAmount, ACH_N_G_R.ProviderMessage as ProviderErrorDescription, PaymentStateDefs.Name AS RefundStatus FROM ACH_NonGuaranteedPayments AS ACH_N_G_P CROSS JOIN PaymentStateDefs INNER JOIN ACH_NonGuaranteedRefunds AS ACH_N_G_R ON ACH_N_G_P.GPaymentID = ACH_N_G_R.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = ACH_N_G_R.PaymentStateDefID WHERE ACH_N_G_R.MerchantID = @MID AND ACH_N_G_R.GpaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Failed",
+                        "RefundAmount": 1.25,
+                        "PaymentAmount": 1.25,
+                        "PaymentAvailableAmount": 1.25,
+                        "ProviderErrorDescription": "Status is 'Accepted', but only 'Funded' or 'Refunded' transactions may be refunded."
+
+                    }
+                }
+
+
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPreapprovedPayin",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>4804638290</CustomerPhone><CustomerAddress><Street>Stradela</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_NonGuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_NonGuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_NonGuaranteedPayments.GPaymentID =@TRXID and  [ACH_NonGuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE ACH_NonGuaranteedPayments SET AvailableAmount = 1.25, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2 WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PREAPPROVED_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ACH_NonGuaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><PreapprovalID>$PREAPPROVALID</PreapprovalID><CustomerName>Test User S2P</CustomerName><Description>ACH_NonGuaranteed recurrent payment</Description></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "PreapprovalID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,  [ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID , [ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_NonGuaranteedPayments].[Description] as Description  , [ACH_NonGuaranteedPayments].[PreapprovalID] as PreapprovalID   FROM [Europay].[dbo].[ACH_NonGuaranteedPayments], [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_NonGuaranteedPayments].GPaymentID = @TRXID and [ACH_NonGuaranteedPayments].[MerchantID]= @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 3000,
+                    "query": "SELECT PR.MerchantID, PR.PaymentTypeID AS MethodID, PR.PreapprovalStateDefID, PSD.Name AS Status FROM PreapprovalRequests AS PR LEFT OUTER JOIN PreapprovalStateDefs AS PSD ON PR.PreapprovalStateDefID = PSD.ID WHERE PR.ID = @PREAPPROVALID",
+                    "expect": {
+                        "Status": "Open",
+                        "MethodID": 103
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_NewUser",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>VS EP Automated test payout</Description><CustomerName>tS2P User</CustomerName><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail",
+                        "CustomerBankAccountID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100",
+                        "StatusID":"1"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayouts].[ID] as ID ,[ACH_NonGuaranteedPayouts].[GPaymentID] as TransactionID ,  [ACH_NonGuaranteedPayouts].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayouts].[MerchantTID] as MerchantTID , [ACH_NonGuaranteedPayouts].[Amount] as Amount ,[ACH_NonGuaranteedPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_NonGuaranteedPayouts].[Description] as Description FROM [Europay].[dbo].[ACH_NonGuaranteedPayouts],  [PaymentStateDefs] where [ACH_NonGuaranteedPayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_NonGuaranteedPayouts].GPaymentID = @TRXID and [ACH_NonGuaranteedPayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayout_ExistingUser",
+                "tags": [],
+                "description": "",
+                "environment": "integration",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>125</Amount><Currency>USD</Currency><Description>payment description</Description><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CustomerName>Test User S2P</CustomerName><CustomerEmail>irinat@smart2pay.com</CustomerEmail><CustomerPhone>4804638290</CustomerPhone><CustomerAddress><Street>Stradela</Street><City>TEXAS</City><State>TX</State><ZipCode>75001</ZipCode></CustomerAddress><AccountNumber>123477591</AccountNumber><RoutingNumber>123456780</RoutingNumber><RecurringDetails><Description>Preapproval description</Description></RecurringDetails></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "125"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                
+                {
+                    "type": "pageInteraction",
+                    "delay": 1000,
+                    "description": "Provider page 1",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Payment confirmation is still pending!')]"
+                        }
+                    ]
+                },
+
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay":1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayments].[ID] as ID ,[ACH_NonGuaranteedPayments].[GPaymentID] as TransactionID ,[ACH_NonGuaranteedPayments].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayments].[MerchantTID] as MerchantTID ,[ACH_NonGuaranteedPayments].[Amount] as Amount ,[ACH_NonGuaranteedPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[ACH_NonGuaranteedPayments].[Description] as Description    FROM [Europay].[dbo].[ACH_NonGuaranteedPayments] with (NOLOCK), [PaymentStateDefs] where [ACH_NonGuaranteedPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and ACH_NonGuaranteedPayments.GPaymentID =@TRXID and  [ACH_NonGuaranteedPayments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.25
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "UPDATE ACH_NonGuaranteedPayments SET AvailableAmount = 1.25, PaymentStateDefID = 2, LastNotifiedPaymentStateDefID =2 WHERE GPaymentID = @TRXID and MerchantID = @MID",
+                    "expect": {}
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYOUT</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>ach_nonguaranteed</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>USD</Currency><Description>VS EP Automated test payout</Description><CustomerName>tS2P User</CustomerName><PreapprovalID>$PREAPPROVALID</PreapprovalID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "CustomerEmail",
+                        "CustomerBankAccountID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100",
+                        "StatusID":"1"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [ACH_NonGuaranteedPayouts].[ID] as ID ,[ACH_NonGuaranteedPayouts].[GPaymentID] as TransactionID ,  [ACH_NonGuaranteedPayouts].[MerchantID] as MerchantID , [ACH_NonGuaranteedPayouts].[MerchantTID] as MerchantTID , [ACH_NonGuaranteedPayouts].[Amount] as Amount ,[ACH_NonGuaranteedPayouts].[Currency] as Currency , [PaymentStateDefs].[Name] as Status , [ACH_NonGuaranteedPayouts].[Description] as Description FROM [Europay].[dbo].[ACH_NonGuaranteedPayouts],  [PaymentStateDefs] where [ACH_NonGuaranteedPayouts].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID]   and [ACH_NonGuaranteedPayouts].GPaymentID = @TRXID and [ACH_NonGuaranteedPayouts].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

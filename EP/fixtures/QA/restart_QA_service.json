@@ -1,0 +1,26 @@
+{
+    "method": {
+        "ID": 0,
+        "name": "restartQAservice"
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "restartQAservice",
+                "tags": ["restartQAservice"],
+                "environment": "integration"
+            },
+            "actions": [
+                {
+                    "type": "runScript",
+                    "scriptFileName": "ServiceRestart.ps1",
+                    "serverName": "EP_BOT",
+                    "params": {
+                        "serviceName": "S2T.Europay.MrCash.WinService"
+                    }
+                }       
+            ]
+        }
+ 
+    ]
+}

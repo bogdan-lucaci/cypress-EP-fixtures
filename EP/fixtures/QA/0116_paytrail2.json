@@ -1,0 +1,505 @@
+{
+    "method": {
+        "ID": 116,
+        "name": "paytrail2",
+        "supportMultiple": true,
+        "skip": false
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "InsertPayin_NoPayOption",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>MerchantService Paytrail2 Payment</Description><CustomerEmail>testcustomer@gmail.com</CustomerEmail><CustomerName>John Doe</CustomerName><Language>EN</Language><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "pay.paytrail.com",
+                    "elements": [
+                        {
+                            "path": "(//img[@alt='Paytrail logo'])[1]"
+                        },
+                        {
+                            "path": "//h1[.='€1.00']"
+                        },
+                        {
+                            "path": "//form[contains(@action,'osuuspankki')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'nordea')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'nag')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'danskebank')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'s-pankki')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'pop')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'omasp')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'aktia')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'handelsbanken')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'saastopankki')]"
+                        },
+                        {
+                            "path": "//form[contains(@action,'alandsbanken')]"
+                        },
+                        {
+                            "path": "//button[.='Cancel payment']"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [Paytrail2Payments].[Amount] as Amount , [Paytrail2Payments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Paytrail2Payments] with (NOLOCK), [PaymentStateDefs] where [Paytrail2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and Paytrail2Payments.GPaymentID = @TRXID and [Paytrail2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_osuuspankki",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>MerchantService Paytrail2 Payment</Description><CustomerEmail>testcustomer@gmail.com</CustomerEmail><CustomerName>John Doe</CustomerName><PayOption>osuuspankki</PayOption><Language>EN</Language><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [Paytrail2Payments].[Amount] as Amount , [Paytrail2Payments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Paytrail2Payments] with (NOLOCK), [PaymentStateDefs] where [Paytrail2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and Paytrail2Payments.GPaymentID = @TRXID and [Paytrail2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "InsertPayin_PayOption_aktia",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>MerchantService Paytrail2 Payment</Description><CustomerEmail>testcustomer@gmail.com</CustomerEmail><CustomerName>John Doe</CustomerName><PayOption>aktia</PayOption><Language>EN</Language><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "auth.aktia.fi",
+                    "elements": [
+                        {
+                            "path": "//h3[contains(text(),'Aktia')]"
+                        },
+                        {
+                            "path": "//a[@class='cancel button-fullwidth']"
+                        },
+                        {
+                            "path": "//input[@id='IDToken1']",
+                            "value": "12345678",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@id='IDToken2']",
+                            "value": "123456",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "auth.aktia.fi",
+                    "elements": [
+                        {
+                            "path": "//input[@id='IDToken1']",
+                            "value": "1234",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//input[@id='submitButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 3",
+                    "url": "ebank.aktia.fi",
+                    "elements": [
+                        {
+                            "path": "//div[contains(text(),'1,00')]"
+                        },
+                        {
+                            "path": "//div[contains(text(),'Nuvei test credentials')]"
+                        },
+                        {
+                            "path": "//input[@id='pin-confirmation-cancel-button']"
+                        },
+                        {
+                            "path": "//input[@id='pin-confirmation-confirm-button']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [Paytrail2Payments].[Amount] as Amount , [Paytrail2Payments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Paytrail2Payments] with (NOLOCK), [PaymentStateDefs] where [Paytrail2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and Paytrail2Payments.GPaymentID = @TRXID and [Paytrail2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 1.00,
+                        "AvailableAmount": 1.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "RefundPayin_PayOption_handelsbanken",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><Description>MerchantService Paytrail2 Payment</Description><CustomerEmail>testcustomer@gmail.com</CustomerEmail><CustomerName>John Doe</CustomerName><PayOption>handelsbanken</PayOption><Language>EN</Language><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "verkkomaksu.handelsbanken.fi",
+                    "elements": [
+                        {
+                            "path": "//div[@aria-label='Handelsbanken']"
+                        },
+                        {
+                            "path": "//span[text()='2,00']"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "11111111",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@name='loginButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "verkkomaksu.handelsbanken.fi",
+                    "elements": [
+                        {
+                            "path": "//span[text()='2,00']"
+                        },
+                        {
+                            "path": "//button[@name='buttonPanel:confirmButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [Paytrail2Payments].[Amount] as Amount , [Paytrail2Payments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Paytrail2Payments] with (NOLOCK), [PaymentStateDefs] where [Paytrail2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and Paytrail2Payments.GPaymentID = @TRXID and [Paytrail2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00,
+                        "AvailableAmount": 2.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT PR.Amount AS RefundAmount, PP.Amount AS PaymentAmount, PP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM Paytrail2Payments AS PP CROSS JOIN PaymentStateDefs INNER JOIN Paytrail2Refunds AS PR ON PP.GPaymentID = PR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = PR.PaymentStateDefID WHERE PR.MerchantID = @MID AND PR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 2.00,
+                        "PaymentAmount": 2.00,
+                        "PaymentAvailableAmount": 0
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "PartialRefundPayin_PayOption_handelsbanken",
+                "tags": [],
+                "description": "",
+                "environment": "qa",
+                "skip": false
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>200</Amount><Currency>EUR</Currency><Description>MerchantService Paytrail2 Payment</Description><CustomerEmail>testcustomer@gmail.com</CustomerEmail><CustomerName>John Doe</CustomerName><PayOption>handelsbanken</PayOption><Language>EN</Language><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "200"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page",
+                    "url": "verkkomaksu.handelsbanken.fi",
+                    "elements": [
+                        {
+                            "path": "//div[@aria-label='Handelsbanken']"
+                        },
+                        {
+                            "path": "//span[text()='2,00']"
+                        },
+                        {
+                            "path": "//input[@id='username']",
+                            "value": "11111111",
+                            "action": "type"
+                        },
+                        {
+                            "path": "//button[@name='loginButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 2",
+                    "url": "verkkomaksu.handelsbanken.fi",
+                    "elements": [
+                        {
+                            "path": "//span[text()='2,00']"
+                        },
+                        {
+                            "path": "//button[@name='buttonPanel:confirmButton']",
+                            "action": "click"
+                        }
+                    ]
+                },
+                {
+                    "type": "pageInteraction",
+                    "delay": 3000,
+                    "description": "Europay redirect page",
+                    "url": "demo2.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//div[@id='top_text'][contains(text(),'Transaction Successful!')]"
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [Paytrail2Payments].[Amount] as Amount , [Paytrail2Payments].[AvailableAmount] as AvailableAmount, [PaymentStateDefs].[Name] as Status FROM [Europay].[dbo].[Paytrail2Payments] with (NOLOCK), [PaymentStateDefs] where [Paytrail2Payments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and Paytrail2Payments.GPaymentID = @TRXID and [Paytrail2Payments].[MerchantID]=@MID",
+                    "expect": {
+                        "Status": "Success",
+                        "Amount": 2.00,
+                        "AvailableAmount": 2.00
+                    }
+                },
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>REFUND_PAYIN</Action><MID>$MID</MID><MSID>1000</MSID><PaymentMethod>paytrail2</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><InitialTransactionID>$TRXID</InitialTransactionID></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency",
+                        "InitialTransactionID"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1500,
+                    "query": "SELECT PR.Amount AS RefundAmount, PP.Amount AS PaymentAmount, PP.AvailableAmount AS PaymentAvailableAmount, PaymentStateDefs.Name AS RefundStatus FROM Paytrail2Payments AS PP CROSS JOIN PaymentStateDefs INNER JOIN Paytrail2Refunds AS PR ON PP.GPaymentID = PR.InitialTransactionID AND PaymentStateDefs.PaymentStateDefID = PR.PaymentStateDefID WHERE PR.MerchantID = @MID AND PR.GPaymentID = @TRXID",
+                    "expect": {
+                        "RefundStatus": "Success",
+                        "RefundAmount": 1.00,
+                        "PaymentAmount": 2.00,
+                        "PaymentAvailableAmount": 1.00
+                    }
+                }
+            ]
+        }
+    ]
+}

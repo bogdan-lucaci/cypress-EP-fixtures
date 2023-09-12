@@ -1,0 +1,79 @@
+{
+    "method": { // method specific data
+        "id": <int>, // 105
+        "name": <string>, // "Bizum"
+        "supportMultiple": <bool>,
+        "skip": <bool>, // OPTIONAL - isIreelevant from XML
+        "knownIssue": <string> // MANDATORY for skip = true
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": <string>, // "Insert Payin - Open payment",
+                "tags": [ <string>, <string>, ... ], // e.g. "refund", "test", "smoke"
+                "description": <string>,
+                "environment": <string>, // test | live
+                "skip": <bool>, // // OPTIONAL - isIreelevant from XML
+                "skipReason": <string>, // MANDATORY for skip = true // get value from "knownIssue" inside XML ?
+                "knownIssue": <string>, // OPTIONAL
+            },
+            "actions": [
+                {
+                    "type": <string>, // request | visitEPlanding | dbquery | pageInteraction
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>bizum</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>100</Amount><Currency>EUR</Currency><Description>payment EP</Description><CustomerName>Dutzu Test</CustomerName><CustomerEmail>dutzu@test.com</CustomerEmail><CountryCode>ES</CountryCode><SuccessURL>https://demo2.smart2pay.com/_redirectURLs/success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs/failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs/processing.html</ProcessingURL><CancelURL>https://demo2.smart2pay.com/_redirectURLs/cancel.html</CancelURL></Details></Request>",
+                    "hashElements": [
+                        "MID",
+                        "Amount" // exact tags from xml
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "100", // short version for value
+                        "Amount": {
+                            "value": "100",
+                            "regex": "///w.",
+                            "length": "3"
+                        }
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "query": "SELECT [BizumPayments].[GPaymentID] as TransactionID ,[BizumPayments].[ID] as ID ,[BizumPayments].[MerchantID] as MerchantID , [BizumPayments].[MerchantTID] as MerchantTID ,[BizumPayments].[Amount] as Amount ,[BizumPayments].[Currency] as Currency , [PaymentStateDefs].[Name] as Status ,[BizumPayments].[Description] as Description    FROM [Europay].[dbo].[BizumPayments] with (NOLOCK), [PaymentStateDefs] where [BizumPayments].[PaymentStateDefID] = [PaymentStateDefs].PaymentStateDefID and BizumPayments.GPaymentID = @TRXID and  [BizumPayments].[MerchantID]= @MID",
+                    "delay": 300, // OPTIONAL - max wait time in seconds for db queries (when we have to wait for provider response on the back-end side
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 1.00,
+                        "Currency": "???<assertion>" // "hasValue" | "gtThen" assetion string from here: https://docs.cypress.io/guides/references/assertions#TDD-Assertions
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider login page",
+                    "url": "", // OPTIONAL -> when we are redirected / domain changed, etc.
+                    "elements": [
+                        {
+                            "description": <string>, //OPTIONAL - describe the current element if xpath is too intricated
+                            "path": "//button[@id='bBizInit']", // an xpath to element
+                            "pathType": "", // OPTIONAL 
+                                        // - if "pathType" == none => it's an xpath/css
+                                        // else "js" and it's js code to be run and return an object
+                            "maxWaitTime": 300, // OPTIONAL - seconds => max amount of time in seconds to wait for the element
+                            "value": "", // OPTIONAL - should be used according to action e.g.: if action = type -> value should be entered | if action = read -> value should be equal to xpath value
+                            "action": "click", //click | select | check | type | (copyType -> should be type with a value)
+                                    // OPTIONAL 
+                                    // - if "action" == none and "value" == none => check xpath has specified "value"
+                                    // - if "action" == none => check xpath/css locator existance -> basically "read"
+                            //"assert": "exists" // always? ...
+                            
+                        },
+                        ...
+                    ]
+                },
+                ...   
+            ]
+        },
+        ...
+    ]
+}

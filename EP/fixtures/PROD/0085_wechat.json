@@ -1,0 +1,115 @@
+{
+    "method": {
+        "ID": 85,
+        "name": "WeChat",
+        "supportMultiple": true,
+        "skip": false,
+        "knownIssue": ""
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "IsRedirected",
+                "tags": [],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>wechat</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>CNY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>VS Automated Test Payment</Description><CustomerEmail>irina@test.com</CustomerEmail></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5"
+                    }
+                },
+                {
+                    "type": "visitEPLanding"
+                },
+                {
+                    "type": "pageInteraction",
+                    "description": "Provider page 1",
+                    "delay": 10000,
+                    "url": "europaytest.smart2pay.com",
+                    "elements": [
+                        {
+                            "path": "//*[@id='QRCodeImageControl']"
+                        },
+                        {
+                            "path": "//*[@id='lblAmountValue']"
+                        },
+                        {
+                            "path": "//*[@id='lblOrderIDValue']"
+                        },
+                        {
+                            "path": "//*[@id='linkRedirectToMerchant']"
+                            
+                        }
+                    ]
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "query": "SELECT [WeChatPayments].[PaymentID] as ID, [WeChatPayments].[GPaymentID] as TransactionID, [WeChatPayments].[MerchantID] as MerchantID, [WeChatPayments].[MerchantTID] as MerchantTID, [WeChatPayments].[Amount] as Amount, [WeChatPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [WeChatPayments].[Description] as Description  FROM [Europay].[dbo].[WeChatPayments], [PaymentStateDefs] where [WeChatPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [WeChatPayments].GPaymentID = @TRXID and [WeChatPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "IsRedirectedMobile",
+                "tags": [],
+                "description": "",
+                "environment": "production",
+                "skip": false,
+                "knownIssue": ""
+            },
+            "actions": [
+                {
+                    "type": "request",
+                    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><Request version=\"1.0\" xmlns=\"http://europay.smart2pay.com/message\"><Action>INSERT_PAYIN</Action><MID>$MID</MID><MSID>1016</MSID><PaymentMethod>wechat</PaymentMethod><IPAddress>127.0.0.1</IPAddress><Hash>$HASH</Hash><Details><MTID>$MTID</MTID><Amount>5</Amount><Currency>CNY</Currency><SuccessURL>https://demo2.smart2pay.com/_redirectURLs//success.html</SuccessURL><FailureURL>https://demo2.smart2pay.com/_redirectURLs//failure.html</FailureURL><ProcessingURL>https://demo2.smart2pay.com/_redirectURLs//processing.html</ProcessingURL><Description>VS Automated Test Payment</Description><CustomerEmail>irina@test.com</CustomerEmail><IsMobileApp>true</IsMobileApp></Details></Request>",
+                    "hashElements": [
+                        "Action",
+                        "MID",
+                        "PaymentMethod",
+                        "IPAddress",
+                        "MTID",
+                        "Amount",
+                        "Currency"
+                    ],
+                    "expect": {
+                        "StatusCode": 200,
+                        "Amount": "5",
+                        "Instructions": {
+                            "regex": "\\w+\\=.+\\;\\w+\\=.+"
+                        }
+                    }
+                },
+                {
+                    "type": "dbQuery",
+					"serverName": "APM_DB",
+                    "delay": 1000,
+                    "query": "SELECT [WeChatPayments].[PaymentID] as ID, [WeChatPayments].[GPaymentID] as TransactionID, [WeChatPayments].[MerchantID] as MerchantID, [WeChatPayments].[MerchantTID] as MerchantTID, [WeChatPayments].[Amount] as Amount, [WeChatPayments].[Currency] as Currency, [PaymentStateDefs].[Name] as Status, [WeChatPayments].[Description] as Description  FROM [Europay].[dbo].[WeChatPayments], [PaymentStateDefs] where [WeChatPayments].[PaymentStateDefID] = [PaymentStateDefs].[PaymentStateDefID] and [WeChatPayments].GPaymentID = @TRXID and [WeChatPayments].[MerchantID] = @MID",
+                    "expect": {
+                        "Status": "Open",
+                        "Amount": 0.05
+                    }
+                }
+            ]
+        }     
+    ]
+}       

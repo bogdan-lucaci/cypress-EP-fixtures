@@ -1,0 +1,100 @@
+{
+    "method": {
+        "ID": 0,
+        "name": "DB connection test"
+    },
+    "testCases": [
+        {
+            "test": {
+                "name": "DB windows auth connection test on DEV DB",
+                "tags": []
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+                    "serverName": "DEV_DB",
+                    "server": "AG-RIA-GPDEV.nuvei.local",
+                    "port": 1443,
+                    "query": "USE Europay; SELECT TOP 1 * FROM [Payments] WHERE PaymentID = '102949'",
+                    "expect": {
+                        "MerchantTID": "Rares1648208736"
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "DEV_DB",
+                    "readOnly": true,
+                    "database": "Europay",
+                    "query": "SELECT TOP 1 * FROM [Payments] WHERE PaymentID = '102949'",
+                    "expect": {
+                        "MerchantTID": "Rares1648208736"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "DB user/pass connection test on INT DB",
+                "tags": []
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "SELECT [MRCashPayments].[MRPaymentID] as ID ,[MRCashPayments].[GPaymentID] as TransactionID , [MRCashPayments].[MerchantID] as MerchantID ,[MRCashPayments].[MerchantTID] as MerchantTID , [MRCashPayments].[Amount] as Amount ,[MRCashPayments].[Currency] as Currency ,[MRCashStatus].[Status] as Status , [MRCashPayments].[Description] as Description ,3 as MethodID FROM [Europay].[dbo].[MRCashPayments], [MRCashStatus] where [MRCashPayments].MRCashStatusID = MRCashStatus.MRCashStatusID and [MRCashPayments].GPaymentID = '567807e7-8473-4449-b7d6-273fbed9c2f3' and [MRCashPayments].[MerchantID]='F520156B-5E64-447F-B0B2-C638FA101C6F'",
+                    "expect": {
+                        "ID": 628004,
+                        "TransactionID": "567807E7-8473-4449-B7D6-273FBED9C2F3",
+                        "MerchantID": "F520156B-5E64-447F-B0B2-C638FA101C6F",
+                        "MerchantTID": "16801015669",
+                        "Currency": "EUR",
+                        "Description": "VS Automated Test Payment",
+                        "MethodID": 3,
+                        "Status": "Failure",
+                        "Amount": 21.00
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "DB exec procedure test on INT DB",
+                "tags": []
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "database": "Europay",
+                    "query": "EXEC [AlipayPlus_GetArticles] @PaymentID = '490'",
+                    "expect": {
+                        "Name": "Obiectiv Nikon 35 mm",
+                        "Quantity": 1
+                    }
+                },
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "EXEC [Europay].[dbo].[IDealGetIssuerByMainIssuerIDAndAccountID] @MainIssuerID = '100', @IDealAccountID = '2'",
+                    "expect": {
+                        "IssuerID": 3151,
+                        "IssuerName": "Issuer Simulation V3 - ING"
+                    }
+                }
+            ]
+        },
+        {
+            "test": {
+                "name": "DB start job test on INT DB",
+                "tags": []
+            },
+            "actions": [
+                {
+                    "type": "dbQuery",
+                    "serverName": "APM_DB",
+                    "query": "USE msdb ; EXEC dbo.sp_start_job N'HPP_GetIDealBankDetails'"
+                }
+            ]
+        }
+    ]
+}
