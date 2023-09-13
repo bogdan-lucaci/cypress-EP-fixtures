@@ -1,7 +1,8 @@
 #FROM node:lts-alpine as build
 #FROM node:18
 #FROM cypress/included:latest
-FROM cypress/included:cypress-13.0.0-node-18.15.0-chrome-106.0.5249.61-1-ff-99.0.1-edge-114.0.1823.51-1
+#FROM cypress/included:cypress-13.0.0-node-18.15.0-chrome-106.0.5249.61-1-ff-99.0.1-edge-114.0.1823.51-1
+FROM cypress/included:cypress-12.13.0-node-18.16.0-chrome-113.0.5672.92-1-ff-113.0-edge-113.0.1774.35-1
 RUN apt-get update -y && \
     apt-get install -y build-essential \
     curl \
@@ -27,7 +28,6 @@ ARG user
 ARG pass
 ARG ip
 
-RUN pwd
 RUN git clone https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
 #RUN git clone --branch feature/docker_test https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
 
@@ -61,5 +61,6 @@ COPY ./EP/env.properties.json ./nuvei-cypress/EP/env.properties.json
 #========================
 
 #docker build . -t ep-fixtures --build-arg="user=<git user>" --build-arg="pass=<git pass>" --build-arg="ip=<my ip>"
-#docker run -it -e NO_PROXY="*" ep-fixtures cypress run --config-file nuvei-cypress/EP/cypress.config.js --spec cypress/e2e/EP_Tests_Engine.spec.cy.js --env grepTags=methodName_mrcash
+#docker run -it -e NO_PROXY="*" ep-fixtures cypress run --config-file nuvei-cypress/EP/cypress.config.js --spec cypress/e2e/EP_Tests_Engine.spec.cy.js --env grepTags=methodName_mrcash --config video=false
+#docker run -it -e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" -e NO_PROXY="*.smart2pay.com" ep-fixtures cypress run --config-file nuvei-cypress/EP/cypress.config.js --spec cypress/e2e/EP_Tests_Engine.spec.cy.js --env grepTags=methodName_mrcash --config video=false
 #109.99.108.161
