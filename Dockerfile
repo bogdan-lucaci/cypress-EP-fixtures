@@ -7,7 +7,7 @@ RUN apt-get update -y && \
     apt-get install -y build-essential \
     curl \
     unixodbc-dev
-CMD node --version
+
 # Microsoft Repo Debian 11 
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 RUN curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list
@@ -40,6 +40,8 @@ ENV HTTP_PROXY=ipv4.${ip}.webdefence.global.blackspider.com:80
 #Module not found: Error: Can't resolve 'process/browser.js' in '/data/repo/APM.Automation.CypressEP/node_modules/js-md5/src'
 #Cannot read properties of undefined (reading 'module')
 
+# fixed by using cypress/included:cypress-12.13.0-node-18.16.0-chrome-113.0.5672.92-1-ff-113.0-edge-113.0.1774.35-1
+
 #WORKDIR /usr/local/lib/node_modules/corepack
 #RUN npm install
 
@@ -59,8 +61,21 @@ COPY ./EP/env.properties.json ./nuvei-cypress/EP/env.properties.json
 #========================
 # Usage:
 #========================
-
+# 1. run build.ps1
+# 2. run start.ps1
 #docker build . -t ep-fixtures --build-arg="user=<git user>" --build-arg="pass=<git pass>" --build-arg="ip=<my ip>"
 #docker run -it -e NO_PROXY="*" ep-fixtures cypress run --config-file nuvei-cypress/EP/cypress.config.js --spec cypress/e2e/EP_Tests_Engine.spec.cy.js --env grepTags=methodName_mrcash --config video=false
-#docker run -it -e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" -e NO_PROXY="*.smart2pay.com" ep-fixtures cypress run --config-file nuvei-cypress/EP/cypress.config.js --spec cypress/e2e/EP_Tests_Engine.spec.cy.js --env grepTags=methodName_mrcash --config video=false
+
+##docker run --name ep-fixtures -v /EP/results/screenshots:/data/repo/APM.Automation.CypressEP/cypress/screenshots -it `
+##docker run --name ep-fixtures -v /data/repo/APM.Automation.CypressEP/cypress/screenshots/EP_Tests_Engine.spec.cy.js/:/EP/results/screenshots -it `
+# docker run --name ep-fixtures `
+#     -v ${PWD}/EP/results/screenshots/:/data/repo/APM.Automation.CypressEP/cypress/screenshots/ -it `
+#     -e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" `
+#     -e NO_PROXY="*.smart2pay.com" `
+#     ep-fixtures `
+#     cypress run `
+#     --config-file nuvei-cypress/EP/cypress.config.js `
+#     --spec cypress/e2e/EP_Tests_Engine.spec.cy.js `
+#     --env grepTags=methodName_mrcash `
+#     --config video=false
 #109.99.108.161
