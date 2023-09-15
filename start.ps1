@@ -23,7 +23,7 @@
     
 docker rm -f ep-fixtures-container
 docker run --name ep-fixtures-container `
-    -v $PWD\EP\results\screenshots:/data/repo/APM.Automation.CypressEP/cypress/screenshots/ `
+    -e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" `
     -e NO_PROXY="*" `
     ep-fixtures-img `
     cypress run `

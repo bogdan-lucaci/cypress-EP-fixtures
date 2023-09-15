@@ -18,6 +18,11 @@ $GitPass = ${Git token}
 $ExternalIpRequest = Invoke-WebRequest -URI http://myexternalip.com/raw
 $ExternalIp = $ExternalIpRequest.Content
 
+# docker build . -t ep-fixtures-img `
+#     --build-context localrepository=../../_GIT_DigitalPayments/APM.Automation.CypressEP/ `
+#     --build-arg="user=$GitUser" `
+#     --build-arg="pass=$GitPass" `
+#     --build-arg="ip=$ExternalIp"
 docker build . -t ep-fixtures-img `
     --build-arg="user=$GitUser" `
     --build-arg="pass=$GitPass" `

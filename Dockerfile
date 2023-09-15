@@ -28,8 +28,10 @@ ARG user
 ARG pass
 ARG ip
 
-RUN git clone https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
-#RUN git clone --branch feature/docker_test https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
+#RUN git clone https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
+#ADD ./../../_GIT_DigitalPayments/APM.Automation.CypressEP/* .
+# COPY --from=localrepository * .
+RUN git clone --branch feature/docker_test_2 https://${user}:${pass}@dev.azure.com/nuvei/DigitalPayments/_git/APM.Automation.CypressEP
 
 ENV HTTP_PROXY=ipv4.${ip}.webdefence.global.blackspider.com:80
 
