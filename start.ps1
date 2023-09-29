@@ -6,7 +6,9 @@
 #   fi
 # }
 
-"$PWD\EP\results\screenshots"
+#https://stackoverflow.com/questions/30543409/how-to-check-if-a-docker-image-with-a-specific-tag-exist-locally
+
+#"$PWD\EP\results\screenshots"
 #--opt device=D:\\_work\\Smart2Pay\\automation\\_GIT_dockerization\\nuvei-cypress-EP-fixtures\\EP\\results\\screenshots `
 
 #-e HTTP_PROXY="ipv4.$ExternalIp.webdefence.global.blackspider.com:80" `
@@ -20,17 +22,32 @@
 #     --opt type=block `
 #     --opt device="\D\_work\Smart2Pay\automation\_GIT_dockerization\nuvei-cypress-EP-fixtures\EP\results\screenshots" `
 #     ep-fixtures-vol
-    
+
+#-v "${PWD}/results:/data/repo/APM.Automation.CypressEP/cypress/screenshots" `
+
+#-e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" `
+
+    # -e HTTP_PROXY="87.120.11.143:443" `
+    # -e NO_PROXY="*" `
+
 docker rm -f ep-fixtures-container
+#docker run --rm --name ep-fixtures-container `
+
+# docker start -ai ep-fixtures-container `
+
 docker run --name ep-fixtures-container `
-    -e HTTP_PROXY="ipv4.109.99.108.161.webdefence.global.blackspider.com:80" `
+    -e HTTP_PROXY="87.120.11.143:443" `
     -e NO_PROXY="*" `
+    -v $PWD\EP\results_last:/data/repo/APM.Automation.CypressEP/cypress/screenshots `
     ep-fixtures-img `
-    cypress run `
+    npx cypress run `
     --config-file nuvei-cypress/EP/cypress.config.js `
     --spec cypress/e2e/EP_Tests_Engine.spec.cy.js `
-    --env grepTags=methodName_mrcash `
-    --config video=false
+    --env grepTags=methodName_paysafecard `
+    --config video=false,retries=0
+
+$containerID = docker ps --no-trunc -aqf "name=ep-fixtures-container"
+docker cp ${containerID}:/data/repo/APM.Automation.CypressEP/cypress/screenshots/ $PWD\EP\results
 
 
 
@@ -50,3 +67,14 @@ docker run --name ep-fixtures-container `
 #     --env grepTags=methodName_mrcash `
 #     --config video=false
 #109.99.108.161
+
+
+
+#################
+# docker run --name ep-fixtures-container `
+#     -e HTTP_PROXY="87.120.11.143:443" `
+#     -e NO_PROXY="*" `
+#     -e DISPLAY=localhost:0.0 `
+#     -v $PWD\EP\results_last:/data/repo/APM.Automation.CypressEP/cypress/screenshots `
+#     ep-fixtures-img `
+#     npx cypress open `
