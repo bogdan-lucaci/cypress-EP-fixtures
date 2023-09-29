@@ -23,7 +23,8 @@ $ExternalIp = $ExternalIpRequest.Content
 #     --build-arg="user=$GitUser" `
 #     --build-arg="pass=$GitPass" `
 #     --build-arg="ip=$ExternalIp"
-docker build . -t ep-fixtures-img `
+docker build --no-cache -t ep-fixtures-img `
+    -f src/Dockerfile . `
     --build-arg="user=$GitUser" `
     --build-arg="pass=$GitPass" `
     --build-arg="ip=$ExternalIp"
